@@ -1,8 +1,9 @@
 import { Button } from "@chakra-ui/react";
 
-export function LoginButton({ event }: { event: () => void }) {
+export function LoginButton({ event, isLoading = false }: { event: () => void; isLoading?: boolean }) {
     return (
         <Button
+            isLoading={isLoading}
             onClick={event}
             padding={'3px'}
             width={'100%'}
