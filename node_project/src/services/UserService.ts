@@ -1,51 +1,56 @@
-export interface IUser {
-    id: string;
-    name: string;
-    email: string;
-    password: string;
-    // balance: number;
-}
-
-const db = [{
-    id: 'fa15d1a6d48',
-    name: "João",
-    email: "joao@dio.com",
-    password: 'joao123',
-}];
+import { sign } from 'jsonwebtoken';
+import { AppDataSource } from '../database';
+import { User } from '../entities/User';
+import { UserRepository } from './../repositories/UserRepository';
 
 export class UserService {
-    db: IUser[];
+    private userRepository: UserRepository;
 
-    constructor(database = db) {
-        this.db = database;
+    constructor(userRepository = new UserRepository(AppDataSource.manager)) {
+        this.userRepository = userRepository;
     }
 
-    createUser = (user: Omit<IUser, 'id'>) => {
-        const newUser: IUser = {
-            id: `${this.db.length + 1}`,
-            name: user.name,
-            email: user.email,
-            password: user.password
-        };
-        this.db.push(newUser);
+    createUser = async (name: string, email: string, password: string): Promise<User> => {
+        const user = new User(name, email, password);
+        return await this.userRepository.createUser(user);
     }
 
-    getAllUsers = () => {
-        return this.db;
+    getAllUsers = async (): Promise<User[]> => {
+        return await this.userRepository.getAllUsers();
     };
 
-    getUser = (id: string): IUser | undefined => {
-        const user = this.db.find((element) => element.id === id);
-        return user;
+    getUser = async (userId: string): Promise<User | null> => {
+        return await this.userRepository.getUser(userId);
     };
 
-    deleteUser = (id: string): boolean => {
-        for (let index = 0; index < this.db.length; index++) {
-            if (this.db[index].id === id) {
-                this.db.splice(index, index + 1);
-                return true;
-            }
+    getAuthenticatedUser = async (email: string, password: string): Promise<User | null> => {
+        return await this.userRepository.getUserByEmailAndPassword(email, password);
+    };
+
+    getToken = async (email: string, password: string): Promise<string> => {
+        const user = await this.getAuthenticatedUser(email, password);
+
+        if (user === null) {
+            throw new Error('Email/Password invalid!');
         }
-        return false;
+
+        const tokenData = {
+            name: user?.name,
+            email: user?.email,
+        };
+
+        const tokenKey = '123456789';
+
+        const tokenOptions = {
+            subject: user?.id_user,
+        };
+
+        const token = sign(tokenData, tokenKey, tokenOptions);
+
+        return token;
+    };
+
+    deleteUser = async (userId: string): Promise<boolean> => {
+        return await this.userRepository.deleteUser(userId);
     };
 }

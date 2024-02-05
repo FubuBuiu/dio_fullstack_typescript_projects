@@ -1,20 +1,31 @@
-import { UserController } from './UserController';
-import { IUser, UserService } from "../services/UserService";
-import { makeMockRequest } from '../__mocks__/mockRequest.mock';
-import { makeMockResponse } from '../__mocks__/mockResponse.mock';
+import { UserController } from '../src/controllers/UserController';
+import { makeMockRequest } from './__mocks__/mockRequest.mock';
+import { makeMockResponse } from './__mocks__/mockResponse.mock';
 import { Request } from 'express';
+import { User } from '../src/entities/User';
+
+const mockUserService = {
+    createUser: jest.fn(),
+    getUser: jest.fn(),
+    getAllUsers: jest.fn(),
+    deleteUser: jest.fn(),
+};
+
+jest.mock("../src/services/UserService", () => {
+    return {
+        UserService: jest.fn().mockImplementation(() => {
+            return mockUserService;
+        })
+    };
+});
 
 describe('UserController tests:', () => {
     const mockResponse = makeMockResponse();
-    let mockUserService: Partial<UserService> = {};
-    const userController = new UserController(mockUserService as UserService);
+    const userController = new UserController();
 
     describe('-Testing the createUser service', () => {
 
-        beforeEach(() => {
-            mockUserService.createUser = jest.fn();
-        });
-        it('should return status code 201 when adding a new user', () => {
+        it('should return status code 201 when adding a new user', async () => {
             const mockRequest = {
                 body: {
                     name: 'Lucas',
@@ -22,7 +33,7 @@ describe('UserController tests:', () => {
                     password: 'lucas123',
                 }
             } as Request;
-            userController.createUser(mockRequest, mockResponse);
+            await userController.createUser(mockRequest, mockResponse);
             expect(mockResponse.state.status).toBe(201);
             expect(mockResponse.state.json).toMatchObject({ message: 'Usuário criado.' });
         });
@@ -98,14 +109,18 @@ describe('UserController tests:', () => {
     });
     describe('-Testing the getAllUsers service', () => {
 
-        beforeEach(() => mockUserService.getAllUsers = jest.fn());
+        it('should return status code 200 when return all users from data base', async () => {
+            mockUserService.getAllUsers = jest.fn().mockImplementation(() => Promise.resolve(Array<User>()));
 
-        it('should return status code 200 when return all users from data base', () => {
             const mockRequest = {} as Request;
 
-            userController.getAllUsers(mockRequest, mockResponse);
+            await userController.getAllUsers(mockRequest, mockResponse);
 
             expect(mockResponse.state.status).toBe(200);
+            expect(mockResponse.state.json).toMatchObject<User[]>(Array<User>());
+
+            jest.clearAllMocks();
+            jest.resetAllMocks();
         });
     });
     describe('-Testing the deleteUser service', () => {
@@ -116,24 +131,29 @@ describe('UserController tests:', () => {
             mockUserService.deleteUser = jest.fn();
         });
 
-        it('should return status code 200 if the user was deleted', () => {
+        afterEach(() => {
+            jest.clearAllMocks();
+            jest.resetAllMocks();
+        });
+
+        it('should return status code 200 if the user was deleted', async () => {
 
             mockUserService.deleteUser = jest.fn(() => true);
 
             const mockRequest = makeMockRequest({ params: { id: userId } });
 
-            userController.deleteUser(mockRequest, mockResponse);
+            await userController.deleteUser(mockRequest, mockResponse);
 
             expect(mockResponse.state.status).toBe(200);
             expect(mockResponse.state.json).toMatchObject({ message: 'User deleted.' });
         });
-        it('should return status code 404 if the user not found', () => {
+        it('should return status code 404 if the user not found', async () => {
 
             mockUserService.deleteUser = jest.fn(() => false);
 
             const mockRequest = makeMockRequest({ params: { id: userId } });
 
-            userController.deleteUser(mockRequest, mockResponse);
+            await userController.deleteUser(mockRequest, mockResponse);
 
             expect(mockResponse.state.status).toBe(404);
             expect(mockResponse.state.json).toMatchObject({ message: 'Data Not Found! User not found.' });
@@ -154,40 +174,47 @@ describe('UserController tests:', () => {
             mockUserService.getUser = jest.fn();
         });
 
-        it('should return status code 200 if user exist', () => {
+        afterEach(() => {
+            jest.clearAllMocks();
+            jest.resetAllMocks();
+        });
+
+        it('should return status code 200 when user exist', async () => {
             const userId: string = 'userId';
-            const user: IUser = {
+            const user = {
                 id: userId,
                 name: "Username",
                 email: "user@dio.com",
                 password: 'usser123',
             };
 
-            mockUserService.getUser = jest.fn(() => user);
+            mockUserService.getUser = jest.fn().mockImplementation(() => user);
 
             const mockRequest = makeMockRequest({ params: { id: userId } })
 
-            userController.getUser(mockRequest, mockResponse);
+            await userController.getUser(mockRequest, mockResponse);
 
+            expect(mockUserService.getUser).toHaveBeenCalledWith(userId);
             expect(mockResponse.state.status).toBe(200);
-            expect(mockResponse.state.json).toStrictEqual<IUser>(user);
+            expect(mockResponse.state.json).toStrictEqual(user);
         });
-        it('should return status code 404 if user not exist', () => {
+        it('should return status code 404 when user not exist', async () => {
             const userId: string = 'userIdThatDoesNotExist';
 
-            mockUserService.getUser = jest.fn(() => undefined);
+            mockUserService.getUser = jest.fn(() => null);
 
             const mockRequest = makeMockRequest({ params: { id: userId } })
 
-            userController.getUser(mockRequest, mockResponse);
+            await userController.getUser(mockRequest, mockResponse);
 
+            expect(mockUserService.getUser).toHaveBeenCalledWith(userId);
             expect(mockResponse.state.status).toBe(404);
             expect(mockResponse.state.json).toMatchObject({ message: 'Data Not Found! User not found.' });
         });
-        it('should return status code 422 if user id no provided by URL', () => {
+        it('should return status code 422 when user id no provided by URL', async () => {
             const mockRequest = makeMockRequest({});
 
-            userController.getUser(mockRequest, mockResponse);
+            await userController.getUser(mockRequest, mockResponse);
 
             expect(mockResponse.state.status).toBe(422);
             expect(mockResponse.state.json).toMatchObject({ message: 'Unprocessable Content!' });
