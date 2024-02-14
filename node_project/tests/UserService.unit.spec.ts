@@ -2,16 +2,25 @@ import { User } from "../src/entities/User";
 import { UserService } from "../src/services/UserService";
 import * as jwt from 'jsonwebtoken';
 
-jest.mock('../src/database', () => {
-    initialize: jest.fn();
-});
 jest.mock('jsonwebtoken');
 
-const mockUserRepository = require('../src/repositories/UserRepository');
+const mockUserRepository = {
+    createUser: jest.fn(),
+    deleteUser: jest.fn(),
+    getUser: jest.fn()
+};
+
+jest.mock('../src/repositories/UserRepository', () => {
+    return {
+        UserRepository: jest.fn().mockImplementation(() => {
+            return mockUserRepository;
+        }),
+    }
+})
 
 describe('UserService tests', () => {
 
-    const userService = new UserService(mockUserRepository);
+    const userService = new UserService();
 
     const mockUser = {
         id_user: '12345',
@@ -22,6 +31,7 @@ describe('UserService tests', () => {
 
     afterEach(() => {
         jest.resetAllMocks();
+        jest.clearAllMocks();
     });
 
     it('should create new user', async () => {
@@ -33,7 +43,6 @@ describe('UserService tests', () => {
         }));
         const response = await userService.createUser('Brendon', 'brendon@dio.com', 'brendon123');
         expect(mockUserRepository.createUser).toHaveBeenCalled();
-        expect(response).toMatchObject<User>(mockUser)
     });
     it('should return user token', async () => {
         jest.spyOn(userService, 'getAuthenticatedUser').mockImplementation(() => Promise.resolve(mockUser));

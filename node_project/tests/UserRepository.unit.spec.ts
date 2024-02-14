@@ -1,11 +1,27 @@
-import { EntityManager } from "typeorm";
-import { getMockEntityManager } from "./__mocks__/mockEntityManager.mock";
+import { Firestore } from "firebase/firestore";
 import { User } from "../src/entities/User";
 import { UserRepository } from "../src/repositories/UserRepository";
+import { getMockFirestoreManager } from "./__mocks__/mockFirestoreFunctions.mock";
+
+let firestoreManager = getMockFirestoreManager({});
+
+jest.mock('firebase/firestore', () => {
+    return {
+        limit: jest.fn(() => firestoreManager.limit()),
+        and: jest.fn(() => firestoreManager.and()),
+        where: jest.fn(() => firestoreManager.where()),
+        collection: jest.fn(() => firestoreManager.collection()),
+        query: jest.fn(() => firestoreManager.query()),
+        doc: jest.fn(() => firestoreManager.doc()),
+        setDoc: jest.fn(() => firestoreManager.setDoc()),
+        getDoc: jest.fn(() => firestoreManager.getDoc()),
+        getDocs: jest.fn(() => firestoreManager.getDocs()),
+        deleteDoc: jest.fn(() => firestoreManager.deleteDoc()),
+    };
+});
 
 describe('UserRepository tests:', () => {
-    let userRepository: UserRepository;
-    let managerMock: Partial<EntityManager>;
+    const userRepository = new UserRepository({} as Firestore);
 
     const mockUser = {
         id_user: '12345',
@@ -16,58 +32,76 @@ describe('UserRepository tests:', () => {
 
     describe('- Create user', () => {
         it('should add new user in data base', async () => {
-            managerMock = await getMockEntityManager({ saveReturn: mockUser });
-            userRepository = new UserRepository(managerMock as EntityManager);
 
-            const response = await userRepository.createUser(mockUser);
+            await userRepository.createUser(mockUser);
 
-            expect(managerMock.save).toHaveBeenCalledTimes(1);
-            expect(response).toMatchObject<User>(mockUser);
+            expect(firestoreManager.setDoc).toHaveBeenCalledTimes(1);
         });
     });
     describe('- Get user', () => {
 
-        beforeEach(async () => {
-            managerMock = await getMockEntityManager({});
+        beforeEach(() => {
+            firestoreManager = getMockFirestoreManager({});
         });
 
+        afterEach(() => {
+            jest.clearAllMocks();
+        })
+
         it('should return user when it exist in database', async () => {
-            managerMock = await getMockEntityManager({ findOneReturn: mockUser });
 
-            userRepository = new UserRepository(managerMock as EntityManager);
+            const userId = '12345';
 
-            const response = await userRepository.getUser('12345');
+            firestoreManager = getMockFirestoreManager({
+                getDocReturn: {
+                    id: userId,
+                    data: () => mockUser,
+                    exists: () => true
+                }
+            })
 
-            expect(managerMock.findOne).toHaveBeenCalledTimes(1);
+            const response = await userRepository.getUser(userId);
+
+            expect(firestoreManager.getDoc).toHaveBeenCalledTimes(1);
             expect(response).toMatchObject<User>(mockUser);
         });
 
         it('should return null when user not exist in database', async () => {
-            userRepository = new UserRepository(managerMock as EntityManager);
 
             const response = await userRepository.getUser('idThatNotExist');
 
-            expect(managerMock.findOne).toHaveBeenCalledTimes(1);
-            expect(response).not.toBeDefined();
+            expect(firestoreManager.getDoc).toHaveBeenCalledTimes(1);
+            expect(response).toBeNull();
         });
     });
     describe('- Get user by email and password', () => {
 
-        beforeEach(async () => {
-            managerMock = await getMockEntityManager({});
+
+
+        beforeEach(() => {
+            firestoreManager = getMockFirestoreManager({});
         });
+
+        afterEach(() => jest.clearAllMocks());
 
         it('should return user when find email and password in database', async () => {
             const email = 'user@dio.com';
             const password = '12345';
 
-            managerMock = await getMockEntityManager({ findOneReturn: mockUser });
-
-            userRepository = new UserRepository(managerMock as EntityManager);
+            firestoreManager = getMockFirestoreManager({
+                getDocsReturn: {
+                    docs: [{
+                        id: '12345',
+                        data: () => mockUser,
+                        exists: () => true,
+                    }],
+                    empty: false,
+                }
+            });
 
             const response = await userRepository.getUserByEmailAndPassword(email, password);
 
-            expect(managerMock.findOne).toHaveBeenCalledTimes(1);
+            expect(firestoreManager.getDocs).toHaveBeenCalledTimes(1);
             expect(response).toMatchObject<User>(mockUser);
         });
 
@@ -75,49 +109,58 @@ describe('UserRepository tests:', () => {
             const email = 'emailThatNotExist';
             const password = 'passwordThatNotExist';
 
-            userRepository = new UserRepository(managerMock as EntityManager);
-
             const response = await userRepository.getUserByEmailAndPassword(email, password);
 
-            expect(managerMock.findOne).toHaveBeenCalledTimes(1);
-            expect(response).not.toBeDefined();
+            expect(firestoreManager.getDocs).toHaveBeenCalledTimes(1);
+            expect(response).toBeNull();
         });
     });
     describe('- Delete user', () => {
-        beforeEach(async () => {
-            managerMock = await getMockEntityManager({})
+
+        beforeEach(() => {
+            firestoreManager = getMockFirestoreManager({});
         });
 
+        afterEach(() => jest.clearAllMocks());
+
         it('should return true when user exist to delete', async () => {
-            managerMock = await getMockEntityManager({
-                existsReturn: true,
+            const userId: string = 'userId';
+
+            firestoreManager = getMockFirestoreManager({
+                getDocReturn: {
+                    id: userId,
+                    data: () => mockUser,
+                    exists: () => true,
+                }
             });
-            userRepository = new UserRepository(managerMock as EntityManager);
 
-            const response: boolean = await userRepository.deleteUser('userId');
+            const response: boolean = await userRepository.deleteUser(userId);
 
-            expect(managerMock.exists).toHaveBeenCalledTimes(1);
-            expect(managerMock.delete).toHaveBeenCalledTimes(1);
+            expect(firestoreManager.getDoc).toHaveBeenCalledTimes(1);
+            expect(firestoreManager.deleteDoc).toHaveBeenCalledTimes(1);
             expect(response).toBe(true);
         });
         it('should return false when user not exist to delete', async () => {
-            userRepository = new UserRepository(managerMock as EntityManager);
 
             const response: boolean = await userRepository.deleteUser('userId');
 
-            expect(managerMock.exists).toHaveBeenCalledTimes(1);
-            expect(managerMock.delete).not.toHaveBeenCalled();
+            expect(firestoreManager.getDoc).toHaveBeenCalledTimes(1);
+            expect(firestoreManager.deleteDoc).not.toHaveBeenCalled();
             expect(response).toBe(false);
         });
     });
     describe('- Get all users', () => {
         it('should return all users', async () => {
-            managerMock = await getMockEntityManager({ findReturn: Array<User>() });
-            userRepository = new UserRepository(managerMock as EntityManager);
+            firestoreManager = getMockFirestoreManager({
+                getDocsReturn: {
+                    docs: [],
+                    empty: true,
+                }
+            });
 
             const response: User[] = await userRepository.getAllUsers();
 
-            expect(managerMock.find).toHaveBeenCalledTimes(1);
+            expect(firestoreManager.getDocs).toHaveBeenCalledTimes(1);
             expect(response).toStrictEqual<User[]>(Array<User>());
         });
     });

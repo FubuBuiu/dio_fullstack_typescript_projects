@@ -1,18 +1,18 @@
 import { sign } from 'jsonwebtoken';
-import { AppDataSource } from '../database';
 import { User } from '../entities/User';
 import { UserRepository } from './../repositories/UserRepository';
+import { firestore } from '../database';
 
 export class UserService {
     private userRepository: UserRepository;
 
-    constructor(userRepository = new UserRepository(AppDataSource.manager)) {
+    constructor(userRepository = new UserRepository(firestore)) {
         this.userRepository = userRepository;
     }
 
-    createUser = async (name: string, email: string, password: string): Promise<User> => {
+    createUser = async (name: string, email: string, password: string) => {
         const user = new User(name, email, password);
-        return await this.userRepository.createUser(user);
+        await this.userRepository.createUser(user);
     }
 
     getAllUsers = async (): Promise<User[]> => {

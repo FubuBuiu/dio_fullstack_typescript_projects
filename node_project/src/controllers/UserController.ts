@@ -22,9 +22,12 @@ export class UserController {
             return response.status(400).json({ message: 'Bad Request! Password required.' });
         };
 
-        await this.userService.createUser(user.name, user.email, user.password);
-
-        return response.status(201).json({ message: 'Usuário criado.' });
+        try {
+            await this.userService.createUser(user.name, user.email, user.password);
+            return response.status(201).json({ message: 'Usuário criado.' });
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     getAllUsers = async (_request: Request, response: Response) => {
