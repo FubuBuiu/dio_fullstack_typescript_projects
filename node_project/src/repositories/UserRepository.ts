@@ -9,7 +9,7 @@ export class UserRepository {
     }
 
     createUser = async (user: User) => {
-        const document = doc(this.database, "users", user.id_user);
+        const document = doc(this.database, "users", user.id);
         await setDoc(document, {
             name: user.name,
             email: user.email,
@@ -22,7 +22,7 @@ export class UserRepository {
 
         if (document.exists()) {
             return {
-                id_user: document.id,
+                id: document.id,
                 name: document.data().name,
                 email: document.data().email,
                 password: document.data().password,
@@ -43,7 +43,7 @@ export class UserRepository {
         const document = snapshot.docs[0];
         document.ref
         return {
-            id_user: document.id,
+            id: document.id,
             name: document.data().name,
             email: document.data().email,
             password: document.data().password,
@@ -54,7 +54,7 @@ export class UserRepository {
     getAllUsers = async (): Promise<User[]> => {
         return (await getDocs(collection(this.database, "users"))).docs.map((document) => {
             return {
-                id_user: document.id,
+                id: document.id,
                 name: document.data().name,
                 email: document.data().email,
                 password: document.data().password,

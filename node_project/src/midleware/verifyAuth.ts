@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { verify } from "jsonwebtoken";
+import { Jwt, JwtPayload, VerifyOptions, verify } from "jsonwebtoken";
+import { User } from "../entities/User";
 
 export function verifyAuth(request: Request, response: Response, next: NextFunction) {
     const authToken = request.headers.authorization;
@@ -7,12 +8,20 @@ export function verifyAuth(request: Request, response: Response, next: NextFunct
     if (authToken) {
         const [, token] = authToken.split(' ');
 
-        const tokenKey = '123456789';
+        const tokenKey = process.env.JWT_SECRET_KEY;
+
+        console.log(tokenKey)
 
         try {
-            const { sub } = verify(token, tokenKey);
+            if (!tokenKey) throw new Error();
 
-            if (sub !== request.params.id) throw new Error();
+            const options: VerifyOptions = {
+                algorithms: ["HS512"]
+            }
+
+            const decoded: any = verify(token, tokenKey, options);
+
+            if (decoded.id !== request.params.id) throw new Error();
 
             return next();
         } catch (error) {

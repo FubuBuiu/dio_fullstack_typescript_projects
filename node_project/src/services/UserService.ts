@@ -1,4 +1,4 @@
-import { sign } from 'jsonwebtoken';
+import { SignOptions, sign } from 'jsonwebtoken';
 import { User } from '../entities/User';
 import { UserRepository } from './../repositories/UserRepository';
 import { firestore } from '../database';
@@ -28,24 +28,27 @@ export class UserService {
     };
 
     getToken = async (email: string, password: string): Promise<string> => {
+        const secretKey = process.env.JWT_SECRET_KEY;
+
+        if (secretKey === undefined) throw new Error('Secret key is undefined!');
+
         const user = await this.getAuthenticatedUser(email, password);
 
         if (user === null) {
             throw new Error('Email/Password invalid!');
-        }
-
-        const tokenData = {
-            name: user?.name,
-            email: user?.email,
         };
 
-        const tokenKey = '123456789';
-
-        const tokenOptions = {
-            subject: user?.id_user,
+        const payload = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
         };
 
-        const token = sign(tokenData, tokenKey, tokenOptions);
+        const options: SignOptions = {
+            algorithm: 'HS512',
+        };
+
+        const token = sign(payload, secretKey, options);
 
         return token;
     };

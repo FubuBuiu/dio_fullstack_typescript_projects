@@ -1,6 +1,7 @@
 import { User } from "../src/entities/User";
 import { UserService } from "../src/services/UserService";
 import * as jwt from 'jsonwebtoken';
+import 'dotenv/config';
 
 jest.mock('jsonwebtoken');
 
@@ -23,7 +24,7 @@ describe('UserService tests', () => {
     const userService = new UserService();
 
     const mockUser = {
-        id_user: '12345',
+        id: '12345',
         name: 'Brendon',
         email: 'brendon@dio.com',
         password: 'brendon123',
@@ -36,7 +37,7 @@ describe('UserService tests', () => {
 
     it('should create new user', async () => {
         mockUserRepository.createUser = jest.fn().mockImplementation(() => Promise.resolve({
-            id_user: '12345',
+            id: '12345',
             name: 'Brendon',
             email: 'brendon@dio.com',
             password: 'brendon123',

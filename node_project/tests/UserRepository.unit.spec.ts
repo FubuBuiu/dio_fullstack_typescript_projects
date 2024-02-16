@@ -24,7 +24,7 @@ describe('UserRepository tests:', () => {
     const userRepository = new UserRepository({} as Firestore);
 
     const mockUser = {
-        id_user: '12345',
+        id: '12345',
         name: 'Test Username',
         email: 'user@dio.com',
         password: 'user123',
