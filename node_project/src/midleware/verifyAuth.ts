@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { Jwt, JwtPayload, VerifyOptions, verify } from "jsonwebtoken";
-import { User } from "../entities/User";
+import { VerifyOptions, verify } from "jsonwebtoken";
 
 export function verifyAuth(request: Request, response: Response, next: NextFunction) {
     const authToken = request.headers.authorization;
