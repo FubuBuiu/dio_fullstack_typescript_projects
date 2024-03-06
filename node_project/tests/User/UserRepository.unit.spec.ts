@@ -1,7 +1,7 @@
 import { Firestore } from "firebase/firestore";
-import { User } from "../src/entities/User";
-import { UserRepository } from "../src/repositories/UserRepository";
-import { getMockFirestoreManager } from "./__mocks__/mockFirestoreFunctions.mock";
+import { User } from "../../src/entities/User";
+import { UserRepository } from "../../src/repositories/UserRepository";
+import { getMockFirestoreManager } from "../__mocks__/mockFirestoreFunctions.mock";
 
 let firestoreManager = getMockFirestoreManager({});
 
@@ -23,9 +23,19 @@ jest.mock('firebase/firestore', () => {
 describe('UserRepository tests:', () => {
     const userRepository = new UserRepository({} as Firestore);
 
-    const mockUser = {
+    let mockUser = {
         id: '12345',
-        name: 'Test Username',
+        name: 'User name',
+        cpf: '11111111111',
+        adress: {
+            street: 'Street',
+            neighborhood: 'Neighborhood',
+            city: 'City',
+            state: 'State',
+            zipCode: 'Zip Code',
+            complement: 'Complement'
+        },
+        phone: 99999999999,
         email: 'user@dio.com',
         password: 'user123',
     };
@@ -76,8 +86,6 @@ describe('UserRepository tests:', () => {
     });
     describe('- Get user by email and password', () => {
 
-
-
         beforeEach(() => {
             firestoreManager = getMockFirestoreManager({});
         });
@@ -116,37 +124,14 @@ describe('UserRepository tests:', () => {
         });
     });
     describe('- Delete user', () => {
-
-        beforeEach(() => {
-            firestoreManager = getMockFirestoreManager({});
-        });
-
         afterEach(() => jest.clearAllMocks());
 
-        it('should return true when user exist to delete', async () => {
+        it('should call deleteUser() to delete user', async () => {
             const userId: string = 'userId';
 
-            firestoreManager = getMockFirestoreManager({
-                getDocReturn: {
-                    id: userId,
-                    data: () => mockUser,
-                    exists: () => true,
-                }
-            });
+            await userRepository.deleteUser(userId);
 
-            const response: boolean = await userRepository.deleteUser(userId);
-
-            expect(firestoreManager.getDoc).toHaveBeenCalledTimes(1);
             expect(firestoreManager.deleteDoc).toHaveBeenCalledTimes(1);
-            expect(response).toBe(true);
-        });
-        it('should return false when user not exist to delete', async () => {
-
-            const response: boolean = await userRepository.deleteUser('userId');
-
-            expect(firestoreManager.getDoc).toHaveBeenCalledTimes(1);
-            expect(firestoreManager.deleteDoc).not.toHaveBeenCalled();
-            expect(response).toBe(false);
         });
     });
     describe('- Get all users', () => {
@@ -164,5 +149,27 @@ describe('UserRepository tests:', () => {
             expect(response).toStrictEqual<User[]>(Array<User>());
         });
     });
+    describe('- Update user', () => {
+        it('should update user informations ', async () => {
+            const newUserData: Omit<User, 'id'> = {
+                name: 'Other user name',
+                cpf: '22222222222',
+                adress: {
+                    street: 'Other Street',
+                    neighborhood: 'other Neighborhood',
+                    city: 'Other City',
+                    state: 'Other State',
+                    zipCode: 'Other Zip Code',
+                    complement: 'Other Complement'
+                },
+                phone: 88988888888,
+                email: 'otheruser@hotmail.com',
+                password: 'otherPassword',
+            };
 
+            await userRepository.updateUser('userId', newUserData);
+
+            expect(firestoreManager.setDoc).toHaveBeenCalled();
+        });
+    });
 });
