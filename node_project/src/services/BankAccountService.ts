@@ -3,7 +3,7 @@ import { firestore } from "../database";
 import { BankAccount } from "../entities/BankAccount";
 import { User } from "../entities/User";
 import { CustomError } from "../errors/CustomError";
-import { identifyPixKeyType } from "../helper";
+import { identifyPixKeyType } from "../helper/help";
 import { agencyValidation, currentAccountValidation, randomPixKeyGenerate } from "../math/mathOperations";
 import { BankAccountRepository } from "../repositories/BankAccountRepository";
 

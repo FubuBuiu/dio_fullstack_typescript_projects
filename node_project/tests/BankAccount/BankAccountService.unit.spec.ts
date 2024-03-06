@@ -2,7 +2,7 @@ import { BankAccount } from "../../src/entities/BankAccount";
 import { CustomError } from "../../src/errors/CustomError";
 import { BankAccountRepository } from "../../src/repositories/BankAccountRepository";
 import { BankAccountService, KeyTypes } from "../../src/services/BankAccountService";
-import * as helper from '../../src/helper';
+import * as helper from '../../src/helper/help';
 
 const mockBankAccountRepository: Omit<BankAccountRepository, 'database'> = {
     createBankAccount: jest.fn(),
