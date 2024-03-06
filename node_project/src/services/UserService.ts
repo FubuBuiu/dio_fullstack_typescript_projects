@@ -1,30 +1,60 @@
 import { SignOptions, sign } from 'jsonwebtoken';
 import { User } from '../entities/User';
-import { UserRepository } from './../repositories/UserRepository';
+import { UserRepository } from "../repositories/UserRepository";
 import { firestore } from '../database';
+import { CustomError } from '../errors/CustomError';
+import { BankAccountService } from './BankAccountService';
+import { cpfValidation } from '../math/mathOperations';
 
 export class UserService {
     private userRepository: UserRepository;
+    private bankAccountService: BankAccountService;
 
     constructor(userRepository = new UserRepository(firestore)) {
         this.userRepository = userRepository;
+        this.bankAccountService = new BankAccountService();
     }
 
-    createUser = async (name: string, email: string, password: string) => {
-        const user = new User(name, email, password);
+    createUser = async (name: string, cpf: string, email: string, password: string) => {
+        const isCpfValid = cpfValidation(cpf);
+
+        if (!isCpfValid) {
+            throw new CustomError('Bad Request! CPF invalid.', 400);
+        }
+
+        let user = await this.userRepository.getUserByEmailAndPassword(email, password);
+
+        if (user !== null) {
+            throw new CustomError('Conflict! User already exists.', 409)
+        }
+
+        user = new User(name, cpf, email, password);
         await this.userRepository.createUser(user);
+        await this.bankAccountService.createBankAccount(user.id);
     }
 
     getAllUsers = async (): Promise<User[]> => {
         return await this.userRepository.getAllUsers();
     };
 
-    getUser = async (userId: string): Promise<User | null> => {
-        return await this.userRepository.getUser(userId);
+    getUser = async (userId: string): Promise<User> => {
+        const user = await this.userRepository.getUser(userId);
+
+        if (user === null) {
+            throw new CustomError('Data Not Found! User does not exist.', 404);
+        }
+
+        return user;
     };
 
-    getAuthenticatedUser = async (email: string, password: string): Promise<User | null> => {
-        return await this.userRepository.getUserByEmailAndPassword(email, password);
+    getAuthenticatedUser = async (email: string, password: string): Promise<User> => {
+        const user = await this.userRepository.getUserByEmailAndPassword(email, password);
+
+        if (user === null) {
+            throw new CustomError('Bad Request! Email/Password invalid.', 400);
+        }
+
+        return user;
     };
 
     getToken = async (email: string, password: string): Promise<string> => {
@@ -33,10 +63,6 @@ export class UserService {
         if (secretKey === undefined) throw new Error('Secret key is undefined!');
 
         const user = await this.getAuthenticatedUser(email, password);
-
-        if (user === null) {
-            throw new Error('Email/Password invalid!');
-        };
 
         const payload = {
             id: user.id,
@@ -53,7 +79,16 @@ export class UserService {
         return token;
     };
 
-    deleteUser = async (userId: string): Promise<boolean> => {
-        return await this.userRepository.deleteUser(userId);
+    deleteUser = async (userId: string) => {
+        await this.getUser(userId);
+        const { bankAccountId } = await this.bankAccountService.getBankAccountByUserId(userId);
+        await this.userRepository.deleteUser(userId);
+        await this.bankAccountService.deleteBankAccount(bankAccountId);
+    };
+
+    updateUser = async (userId: string, newUserData: Omit<User, 'id'>) => {
+        //TODO Adicionar a verificação da veracidade de todas as propriedades necessárias de newUserData  
+        await this.getUser(userId);
+        await this.userRepository.updateUser(userId, newUserData);
     };
 }

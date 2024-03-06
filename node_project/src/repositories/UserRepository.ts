@@ -1,4 +1,4 @@
-import { Firestore, and, collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, where } from "firebase/firestore";
+import { Firestore, and, collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { User } from "../entities/User";
 
 export class UserRepository {
@@ -9,11 +9,17 @@ export class UserRepository {
     }
 
     createUser = async (user: User) => {
-        const document = doc(this.database, "users", user.id);
-        await setDoc(document, {
-            name: user.name,
-            email: user.email,
-            password: user.password,
+        const { id, ...userData } = user;
+        const docRef = doc(this.database, "users", id);
+        await setDoc(docRef, {
+            ...userData,
+        });
+    };
+
+    updateUser = async (userId: string, newUserData: Omit<User, 'id'>) => {
+        const docRef = doc(this.database, "users", userId);
+        await updateDoc(docRef, {
+            ...newUserData
         });
     };
 
@@ -24,6 +30,9 @@ export class UserRepository {
             return {
                 id: document.id,
                 name: document.data().name,
+                cpf: document.data().cpf,
+                adress: document.data().adress,
+                phone: document.data().phone,
                 email: document.data().email,
                 password: document.data().password,
             };
@@ -41,10 +50,13 @@ export class UserRepository {
         }
 
         const document = snapshot.docs[0];
-        document.ref
+
         return {
             id: document.id,
             name: document.data().name,
+            cpf: document.data().cpf,
+            adress: document.data().adress,
+            phone: document.data().phone,
             email: document.data().email,
             password: document.data().password,
         }
@@ -56,20 +68,18 @@ export class UserRepository {
             return {
                 id: document.id,
                 name: document.data().name,
+                cpf: document.data().cpf,
+                adress: document.data().adress,
+                phone: document.data().phone,
                 email: document.data().email,
                 password: document.data().password,
             }
         });
     };
 
-    deleteUser = async (userId: string): Promise<boolean> => {
+    deleteUser = async (userId: string) => {
         const document = doc(this.database, 'users', userId);
-        const user = await getDoc(document);
-        const isUserExist: boolean = user.exists();
+        await deleteDoc(document);
 
-        if (isUserExist) {
-            return await deleteDoc(document).then(() => true);
-        }
-        return isUserExist;
     };
 }
