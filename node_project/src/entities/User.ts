@@ -4,7 +4,7 @@ export class User {
     id: string;
     name: string;
     email: string;
-    phone?: number;
+    phone?: string;
     password: string;
     cpf: string;
     adress?: {
