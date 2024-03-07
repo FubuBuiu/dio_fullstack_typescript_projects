@@ -16,7 +16,7 @@ export class UserRepository {
         });
     };
 
-    updateUser = async (userId: string, newUserData: Omit<User, 'id'>) => {
+    updateUser = async (userId: string, newUserData: Partial<Omit<User, 'id'>>) => {
         const docRef = doc(this.database, "users", userId);
         await updateDoc(docRef, {
             ...newUserData

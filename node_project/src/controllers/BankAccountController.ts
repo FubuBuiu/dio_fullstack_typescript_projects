@@ -7,7 +7,7 @@ import { UserService } from '../services/UserService';
 type TransferType = 'PIX' | 'TED' | 'DOC';
 
 export interface TransactionDataType {
-    trasnferValue: number;
+    transferValue: number;
     sender: {
         currentAccount: string;
         agency: string;
@@ -35,7 +35,7 @@ export class BankAccountController {
             return response.status(400).json({ message: 'Bad Request! Request body was not provided.' });
         }
 
-        if (transactionData.trasnferValue === undefined || transactionData.receiver === undefined || transactionData.sender === undefined || transactionData.sender.agency === undefined || transactionData.sender.currentAccount === undefined || transactionData.transferType === undefined) {
+        if (transactionData.transferValue === undefined || transactionData.receiver === undefined || transactionData.sender === undefined || transactionData.sender.agency === undefined || transactionData.sender.currentAccount === undefined || transactionData.transferType === undefined) {
             return response.status(400).json({ message: 'Bad Request! Request body is missing property.' });
         };
 

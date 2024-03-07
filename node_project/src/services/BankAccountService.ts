@@ -111,9 +111,8 @@ export class BankAccountService {
     };
 
     makeTransfer = async (transactionData: TransactionDataType) => {
-        // TODO Verificar se o remetente tem dinheiro na conta suficiente para realizar a transferência
 
-        const { receiver, sender, transferType, trasnferValue } = transactionData;
+        const { receiver, sender, transferType, transferValue } = transactionData;
 
         const isSenderCurrentAccount = currentAccountValidation(sender.currentAccount);
 
@@ -125,6 +124,17 @@ export class BankAccountService {
 
         if (!isSenderAgency) {
             throw new CustomError('Bad Request! Sender agency is not valid', 400);
+        };
+
+        const senderBankAccount = await this.getBankAccountByCurrentAccountAndAgency(sender.currentAccount, sender.agency);
+
+        if (senderBankAccount.balance < transactionData.transferValue) {
+            throw new CustomError('Forbidden! Sender does not have enough balance', 403);
+        }
+
+        const senderData = {
+            bankAccountId: senderBankAccount.bankAccountId,
+            balance: senderBankAccount.balance
         };
 
         let receiverData;
@@ -162,13 +172,6 @@ export class BankAccountService {
             }
         }
 
-        const senderBankAccount = await this.getBankAccountByCurrentAccountAndAgency(sender.currentAccount, sender.agency);
-
-        const senderData = {
-            bankAccountId: senderBankAccount.bankAccountId,
-            balance: senderBankAccount.balance
-        };
-
-        await this.bankAccountRepository.makeTransfer(senderData, receiverData, trasnferValue);
+        await this.bankAccountRepository.makeTransfer(senderData, receiverData, transferValue);
     };
 }

@@ -5,6 +5,7 @@ import { firestore } from '../database';
 import { CustomError } from '../errors/CustomError';
 import { BankAccountService } from './BankAccountService';
 import { cpfValidation } from '../math/mathOperations';
+import { phoneValidation } from '../helper/help';
 
 export class UserService {
     private userRepository: UserRepository;
@@ -86,8 +87,19 @@ export class UserService {
         await this.bankAccountService.deleteBankAccount(bankAccountId);
     };
 
-    updateUser = async (userId: string, newUserData: Omit<User, 'id'>) => {
-        //TODO Adicionar a verificação da veracidade de todas as propriedades necessárias de newUserData  
+    updateUser = async (userId: string, newUserData: Partial<Omit<User, 'id'>>) => {
+        if (newUserData.cpf !== undefined && !cpfValidation(newUserData.cpf)) {
+            throw new CustomError('Bad Request! CPF invalid.', 400);
+        };
+
+        if (newUserData.phone !== undefined && !phoneValidation(newUserData.phone.toString())) {
+            throw new CustomError('Bad Request! Phone invalid.', 400);
+        }
+
+        if (newUserData.adress?.zipCode !== undefined && !newUserData.adress.zipCode.match(/^\d{8}$/)) {
+            throw new CustomError('Bad Request! CEP invalid.', 400)
+        }
+
         await this.getUser(userId);
         await this.userRepository.updateUser(userId, newUserData);
     };
