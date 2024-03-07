@@ -85,29 +85,41 @@ export const cpfValidation = (cpf: string): boolean => {
         const firstNineDigits = cpf.slice(0, 9);
         const verificatorDigits = cpf.slice(9);
 
-        const firstValidatingDigit = cpfDigitGenerate(firstNineDigits);
+        const validatingDigit = cpfDigitGenerate(firstNineDigits);
 
-        const firstTenDigits = firstNineDigits + firstValidatingDigit;
-
-        const secondValidatingDigit = cpfDigitGenerate(firstTenDigits);
-
-        return verificatorDigits === firstValidatingDigit + secondValidatingDigit
+        return verificatorDigits === validatingDigit
     }
     return false;
 };
 
 export const cpfDigitGenerate = (number: string): string => {
-    // TODO Gerar os dois digitos verificadores aqui dentro dessa função 
-
+    // Calculating the first verify digit
+    let firstVerifyDigit = '0';
     let resultCalcFirstVerifyingDigit = 0;
 
     for (let index = 0; index < number.length; index++) {
         resultCalcFirstVerifyingDigit = (parseInt(number[index]) * ((number.length + 1) - index)) + resultCalcFirstVerifyingDigit;
     }
 
-    const mod11 = resultCalcFirstVerifyingDigit % 11;
-    if (mod11 >= 2) {
-        return `${11 - mod11}`;
+    const mod11FirstDigit = resultCalcFirstVerifyingDigit % 11;
+    if (mod11FirstDigit >= 2) {
+        firstVerifyDigit = `${11 - mod11FirstDigit}`;
     }
-    return '0';
+
+    const newNumber = number + firstVerifyDigit;
+
+    // Calculating the second verify digit
+    let secondVerifyDigit = '0';
+    let resultCalcSecondVerifyingDigit = 0;
+
+    for (let index = 0; index < newNumber.length; index++) {
+        resultCalcSecondVerifyingDigit = (parseInt(newNumber[index]) * ((newNumber.length + 1) - index)) + resultCalcSecondVerifyingDigit;
+    }
+
+    const mod11SecondDigit = resultCalcSecondVerifyingDigit % 11;
+    if (mod11SecondDigit >= 2) {
+        secondVerifyDigit = `${11 - mod11SecondDigit}`;
+    }
+
+    return firstVerifyDigit + secondVerifyDigit;
 };
