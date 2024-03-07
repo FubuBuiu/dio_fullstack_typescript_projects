@@ -17,21 +17,46 @@ export const identifyPixKeyType = async (key: string): Promise<KeyTypes> => {
             return 'CPF';
         }
 
-        const ddd = key.slice(0, 2);
+        const isPhone: boolean = phoneValidation(key);
 
-        const isPhone: boolean = ddd in json.statesByDDD;
         if (isPhone) {
             return 'PHONE';
         }
     }
 
-    const emailsValid = ['@hotmail.com', '@gmail.com', '@outlook.com', '@yahoo.com'];
+    const isEmailValid = emailValidation(key);
 
-    for (const email of emailsValid) {
-        if (key.includes(email)) {
-            return "EMAIL";
-        }
+    if (isEmailValid) {
+        return "EMAIL";
     }
 
     return 'RANDOM';
+};
+
+export const emailValidation = (email: string): boolean => {
+    const emailsValid = ['@hotmail.com', '@gmail.com', '@outlook.com', '@yahoo.com'];
+
+    for (const suffix of emailsValid) {
+        if (email.includes(suffix)) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
+export const phoneValidation = (phone: string): boolean => {
+    if (phone.match(/^(?!(\d)\1{10})\d{11}$/)) {
+        const ddd = phone.slice(0, 2);
+        const thirdDigit = phone.slice(2, 3);
+
+        if (thirdDigit !== '9') {
+            return false;
+        }
+
+        const isValid: boolean = ddd in json.statesByDDD;
+
+        return isValid;
+    }
+    return false;
 };
