@@ -32,5 +32,6 @@ export const getMockFirestoreManager = ({
         getDoc: jest.fn().mockImplementation(() => Promise.resolve(getDocReturn)),
         getDocs: jest.fn().mockImplementation(() => Promise.resolve(getDocsReturn)),
         deleteDoc: jest.fn().mockImplementation(() => Promise.resolve()),
+        updateDoc: jest.fn()
     };
 };

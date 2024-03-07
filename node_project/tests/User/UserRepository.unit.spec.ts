@@ -17,6 +17,7 @@ jest.mock('firebase/firestore', () => {
         getDoc: jest.fn(() => firestoreManager.getDoc()),
         getDocs: jest.fn(() => firestoreManager.getDocs()),
         deleteDoc: jest.fn(() => firestoreManager.deleteDoc()),
+        updateDoc: jest.fn(() => firestoreManager.updateDoc())
     };
 });
 
@@ -35,7 +36,7 @@ describe('UserRepository tests:', () => {
             zipCode: 'Zip Code',
             complement: 'Complement'
         },
-        phone: 99999999999,
+        phone: '99999999999',
         email: 'user@dio.com',
         password: 'user123',
     };
@@ -162,14 +163,14 @@ describe('UserRepository tests:', () => {
                     zipCode: 'Other Zip Code',
                     complement: 'Other Complement'
                 },
-                phone: 88988888888,
+                phone: '88988888888',
                 email: 'otheruser@hotmail.com',
                 password: 'otherPassword',
             };
 
             await userRepository.updateUser('userId', newUserData);
 
-            expect(firestoreManager.setDoc).toHaveBeenCalled();
+            expect(firestoreManager.updateDoc).toHaveBeenCalled();
         });
     });
 });

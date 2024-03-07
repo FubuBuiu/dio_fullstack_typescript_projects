@@ -59,7 +59,7 @@ describe('BankAccountController tests:', () => {
         it('should make transfer when transfer type is TED or DOC', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    trasnferValue: 500,
+                    transferValue: 500,
                     sender: {
                         currentAccount: '12345678',
                         agency: '12345',
@@ -81,7 +81,7 @@ describe('BankAccountController tests:', () => {
         it('should make transfer when transfer type is PIX', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    trasnferValue: 500,
+                    transferValue: 500,
                     sender: {
                         currentAccount: '12345678',
                         agency: '12345',
@@ -132,7 +132,7 @@ describe('BankAccountController tests:', () => {
         it('should return Bad Request error when sender is undefined', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    trasnferValue: 500,
+                    transferValue: 500,
                     receiver: {
                         currentAccount: '87654321',
                         agency: '54321',
@@ -150,7 +150,7 @@ describe('BankAccountController tests:', () => {
         it('should return Bad Request error when receiver is undefined', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    trasnferValue: 500,
+                    transferValue: 500,
                     sender: {
                         currentAccount: '12345678',
                         agency: '12345',
@@ -168,7 +168,7 @@ describe('BankAccountController tests:', () => {
         it('should return Bad Request error when transfer type is undefined', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    trasnferValue: 500,
+                    transferValue: 500,
                     sender: {
                         currentAccount: '12345678',
                         agency: '12345',
@@ -189,7 +189,7 @@ describe('BankAccountController tests:', () => {
         it('should return Bad Request error when sender current account is undefined', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    trasnferValue: 500,
+                    transferValue: 500,
                     sender: {
                         agency: '12345',
                     },
@@ -210,7 +210,7 @@ describe('BankAccountController tests:', () => {
         it('should return Bad Request error when sender agency is undefined', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    trasnferValue: 500,
+                    transferValue: 500,
                     sender: {
                         currentAccount: '12345678',
                     },
@@ -231,7 +231,7 @@ describe('BankAccountController tests:', () => {
         it('should return Bad Request error when transfer type not recognized', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    trasnferValue: 500,
+                    transferValue: 500,
                     sender: {
                         currentAccount: '12345678',
                         agency: '12345',
@@ -253,7 +253,7 @@ describe('BankAccountController tests:', () => {
         it('should return Bad Request error when transfer type is PIX and pix key not provided', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    trasnferValue: 500,
+                    transferValue: 500,
                     sender: {
                         currentAccount: '12345678',
                         agency: '12345',
@@ -272,7 +272,7 @@ describe('BankAccountController tests:', () => {
         it('should return Bad Request error when transfer type is DOC or TED and receiver current account and agency are not provided', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    trasnferValue: 500,
+                    transferValue: 500,
                     sender: {
                         currentAccount: '12345678',
                         agency: '12345',
@@ -291,7 +291,7 @@ describe('BankAccountController tests:', () => {
         it('should return status code 500 for another error', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    trasnferValue: 500,
+                    transferValue: 500,
                     sender: {
                         currentAccount: '12345678',
                         agency: '12345',

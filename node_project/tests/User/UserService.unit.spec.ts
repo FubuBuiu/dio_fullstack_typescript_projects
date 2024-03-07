@@ -52,7 +52,7 @@ describe('UserService tests', () => {
             zipCode: 'Zip Code',
             complement: 'Complement'
         },
-        phone: 99999999999,
+        phone: '99999999999',
         email: 'user@dio.com',
         password: 'user123',
     };
@@ -186,22 +186,23 @@ describe('UserService tests', () => {
         afterEach(() => {
             jest.clearAllMocks();
             jest.resetAllMocks();
+            jest.restoreAllMocks();
         });
         it('should update user if does exist', async () => {
             jest.spyOn(userService, 'getUser').mockImplementation(() => Promise.resolve(mockUser));
             const userId = 'userId';
             const mockNewInformationUser = {
                 name: 'Other user name',
-                cpf: '22222222222',
+                cpf: '83488252078',
                 adress: {
                     street: 'Other Street',
                     neighborhood: 'Other Neighborhood',
                     city: 'Other City',
                     state: 'Other State',
-                    zipCode: 'Other Zip Code',
+                    zipCode: '48909730',
                     complement: 'Other Complement'
                 },
-                phone: 88888888888,
+                phone: '79988888888',
                 email: 'otherEmail@dio.com',
                 password: 'otherPassword',
             };
@@ -218,16 +219,16 @@ describe('UserService tests', () => {
             const userId = 'userId';
             const mockNewInformationUser = {
                 name: 'Other user name',
-                cpf: '22222222222',
+                cpf: '83488252078',
                 adress: {
                     street: 'Other Street',
                     neighborhood: 'Other Neighborhood',
                     city: 'Other City',
                     state: 'Other State',
-                    zipCode: 'Other Zip Code',
+                    zipCode: '48909730',
                     complement: 'Other Complement'
                 },
-                phone: 88888888888,
+                phone: '79988888888',
                 email: 'otherEmail@dio.com',
                 password: 'otherPassword',
             };
@@ -235,6 +236,72 @@ describe('UserService tests', () => {
             await expect(userService.updateUser(userId, mockNewInformationUser)).rejects.toThrow(new CustomError('Data Not Found! User does not exist.', 404));
             expect(userService.getUser).toHaveBeenCalledTimes(1);
             expect(userService.getUser).toHaveBeenCalledWith(userId);
+            expect(mockUserRepository.updateUser).not.toHaveBeenCalled();
+        });
+        it('should return error when the CPF provided is not valid', async () => {
+            const getUserSpy = jest.spyOn(userService, 'getUser');
+            const mockNewInformationUser = {
+                name: 'Other user name',
+                cpf: '12345678901',
+                adress: {
+                    street: 'Other Street',
+                    neighborhood: 'Other Neighborhood',
+                    city: 'Other City',
+                    state: 'Other State',
+                    zipCode: '48909730',
+                    complement: 'Other Complement'
+                },
+                phone: '79988888888',
+                email: 'otherEmail@dio.com',
+                password: 'otherPassword',
+            };
+
+            await expect(userService.updateUser('userId', mockNewInformationUser)).rejects.toThrow(new CustomError('Bad Request! CPF invalid.', 400));
+            expect(getUserSpy).not.toHaveBeenCalled();
+            expect(mockUserRepository.updateUser).not.toHaveBeenCalled();
+        });
+        it('should return error when phone provided is not valid', async () => {
+            const getUserSpy = jest.spyOn(userService, 'getUser');
+            const mockNewInformationUser = {
+                name: 'Other user name',
+                cpf: '83488252078',
+                adress: {
+                    street: 'Other Street',
+                    neighborhood: 'Other Neighborhood',
+                    city: 'Other City',
+                    state: 'Other State',
+                    zipCode: '48909730',
+                    complement: 'Other Complement'
+                },
+                phone: '12345678901',
+                email: 'otherEmail@dio.com',
+                password: 'otherPassword',
+            };
+
+            await expect(userService.updateUser('userId', mockNewInformationUser)).rejects.toThrow(new CustomError('Bad Request! Phone invalid.', 400));
+            expect(getUserSpy).not.toHaveBeenCalled();
+            expect(mockUserRepository.updateUser).not.toHaveBeenCalled();
+        });
+        it('should return error when zip code provided is not valid', async () => {
+            const getUserSpy = jest.spyOn(userService, 'getUser');
+            const mockNewInformationUser = {
+                name: 'Other user name',
+                cpf: '83488252078',
+                adress: {
+                    street: 'Other Street',
+                    neighborhood: 'Other Neighborhood',
+                    city: 'Other City',
+                    state: 'Other State',
+                    zipCode: '123456',
+                    complement: 'Other Complement'
+                },
+                phone: '12945678901',
+                email: 'otherEmail@dio.com',
+                password: 'otherPassword',
+            };
+
+            await expect(userService.updateUser('userId', mockNewInformationUser)).rejects.toThrow(new CustomError('Bad Request! CEP invalid.', 400));
+            expect(getUserSpy).not.toHaveBeenCalled();
             expect(mockUserRepository.updateUser).not.toHaveBeenCalled();
         });
     });

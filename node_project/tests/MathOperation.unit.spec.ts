@@ -116,7 +116,7 @@ describe('Math operations tests', () => {
 
             const cpfIsValid = cpfValidation(cpf);
 
-            expect(cpfDigitGenerateSpy).toHaveBeenCalledTimes(2);
+            expect(cpfDigitGenerateSpy).toHaveBeenCalledTimes(1);
             expect(cpfIsValid).toBeTruthy();
         });
         it('should return false when cpf does not have valid length ', () => {
@@ -132,14 +132,14 @@ describe('Math operations tests', () => {
 
             const cpfIsValid = cpfValidation(cpf);
 
-            expect(cpfDigitGenerateSpy).toHaveBeenCalledTimes(2);
+            expect(cpfDigitGenerateSpy).toHaveBeenCalledTimes(1);
             expect(cpfIsValid).toBeFalsy();
         });
         it('should return verify digit of the given number', () => {
             const verifyDigit = cpfDigitGenerate('54163198');
 
             expect(typeof verifyDigit).toBe('string');
-            expect(verifyDigit).toHaveLength(1);
+            expect(verifyDigit).toHaveLength(2);
             expect(!isNaN(parseInt(verifyDigit))).toBeTruthy();
         });
     });

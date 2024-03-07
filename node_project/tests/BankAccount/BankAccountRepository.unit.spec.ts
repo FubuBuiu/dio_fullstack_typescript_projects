@@ -18,6 +18,7 @@ jest.mock('firebase/firestore', () => {
         getDoc: jest.fn(() => firestoreManager.getDoc()),
         getDocs: jest.fn(() => firestoreManager.getDocs()),
         deleteDoc: jest.fn(() => firestoreManager.deleteDoc()),
+        updateDoc: jest.fn(() => firestoreManager.updateDoc())
     };
 });
 
@@ -184,7 +185,7 @@ describe('BankAccountRepository tests:', () => {
 
             await bankAccountRepository.createPixKey(bankAccountId, pixKeys);
 
-            expect(firestoreManager.setDoc).toHaveBeenCalledTimes(1);
+            expect(firestoreManager.updateDoc).toHaveBeenCalledTimes(1);
         });
     });
     describe('- Delete bank account', () => {
@@ -203,7 +204,7 @@ describe('BankAccountRepository tests:', () => {
 
             await bankAccountRepository.makeTransfer(senderData, receiverData, transferValue);
 
-            expect(firestoreManager.setDoc).toHaveBeenCalledTimes(2);
+            expect(firestoreManager.updateDoc).toHaveBeenCalledTimes(2);
         });
     });
 });

@@ -8,26 +8,19 @@ describe('Helper tests:', () => {
 
         expect(keyType).toBe('CPF');
     });
-    it('should return CPF key type', async () => {
-        const key = '79981665522';
+    it('should return EMAIL key type', async () => {
+        const key = 'test@gmail.com';
+
+        const keyType = await identifyPixKeyType(key)
+
+        expect(keyType).toBe('EMAIL');
+    });
+    it('should return PHONE key type', async () => {
+        const key = '79988888888';
 
         const keyType = await identifyPixKeyType(key)
 
         expect(keyType).toBe('PHONE');
-    });
-    it('should return EMAIL key type', async () => {
-        const key = 'test@gmail.com';
-
-        const keyType = await identifyPixKeyType(key)
-
-        expect(keyType).toBe('EMAIL');
-    });
-    it('should return EMAIL key type', async () => {
-        const key = 'test@gmail.com';
-
-        const keyType = await identifyPixKeyType(key)
-
-        expect(keyType).toBe('EMAIL');
     });
     it('should return RANDOM key type', async () => {
         const key = 'RANDOMPIXKEY';
@@ -36,4 +29,5 @@ describe('Helper tests:', () => {
 
         expect(keyType).toBe('RANDOM');
     });
+    //TODO CRIAR OS TESTES PARA AS NOVAS FUNÇÕES
 });

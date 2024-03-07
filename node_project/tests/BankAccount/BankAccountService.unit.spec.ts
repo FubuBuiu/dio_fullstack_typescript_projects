@@ -2,6 +2,7 @@ import { BankAccount } from "../../src/entities/BankAccount";
 import { CustomError } from "../../src/errors/CustomError";
 import { BankAccountRepository } from "../../src/repositories/BankAccountRepository";
 import { BankAccountService, KeyTypes } from "../../src/services/BankAccountService";
+import * as mathOperations from '../../src/math/mathOperations'
 import * as helper from '../../src/helper/help';
 
 const mockBankAccountRepository: Omit<BankAccountRepository, 'database'> = {
@@ -29,24 +30,14 @@ jest.mock('@/repositories/BankAccountRepository', () => {
     };
 });
 
-jest.mock('@/math/mathOperations', () => {
-    return {
-        agencyGenerate: jest.fn(),
-        currentAccountGenerate: jest.fn(),
-        agencyValidation: jest.fn().mockImplementation(() => mockMathOperations.agencyValidation()),
-        currentAccountValidation: jest.fn().mockImplementation(() => mockMathOperations.currentAccountValidation()),
-        randomPixKeyGenerate: jest.fn(),
-    };
-});
-
 describe('BankAccountService tests:', () => {
     const bankAccountService = new BankAccountService();
 
     const mockBankAccount = {
         bankAccountId: 'bankAccountId',
         userId: 'userId',
-        currentAccount: '123456784',
-        agency: '12345',
+        currentAccount: '9113111159',
+        agency: '59868',
         balance: 1000,
         pixKeys: {
             cpfKey: 'cpfKey',
@@ -65,35 +56,47 @@ describe('BankAccountService tests:', () => {
     });
     describe('- Get bank account by current account and agency', () => {
 
-        const currentAccount = '0123456';
-        const agency = '01234';
+        let currentAccountValidationSpy: jest.SpyInstance;
+        let agencyValidationSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            mockMathOperations.currentAccountValidation = jest.fn(() => true);
-            mockMathOperations.agencyValidation = jest.fn(() => true);
+            currentAccountValidationSpy = jest.spyOn(mathOperations, 'currentAccountValidation');
+            agencyValidationSpy = jest.spyOn(mathOperations, 'agencyValidation');
         });
+        afterEach(() => {
+            jest.clearAllMocks();
+            jest.resetAllMocks();
+            jest.restoreAllMocks();
+        })
         it('should return bank account when current account and agency are found', async () => {
-            mockBankAccountRepository.getBankAccountByCurrentAccountAndAgency = jest.fn().mockImplementation(() => Promise.resolve(mockBankAccount));
+            mockBankAccountRepository.getBankAccountByCurrentAccountAndAgency = jest.fn().mockResolvedValue(mockBankAccount);
 
-            const bankAccount = await bankAccountService.getBankAccountByCurrentAccountAndAgency(currentAccount, agency);
+            const bankAccount = await bankAccountService.getBankAccountByCurrentAccountAndAgency(mockBankAccount.currentAccount, mockBankAccount.agency);
 
+            expect(currentAccountValidationSpy).toHaveBeenCalledTimes(1);
+            expect(agencyValidationSpy).toHaveBeenCalledTimes(1);
             expect(mockBankAccountRepository.getBankAccountByCurrentAccountAndAgency).toHaveBeenCalledTimes(1);
             expect(bankAccount).toMatchObject<BankAccount>(mockBankAccount);
         });
         it('should return Bad Request error when current account is not valid', async () => {
-            mockMathOperations.currentAccountValidation = jest.fn(() => false);
 
-            await expect(bankAccountService.getBankAccountByCurrentAccountAndAgency(currentAccount, agency)).rejects.toThrow(new CustomError('Bad Request! Current account is not valid', 400));
+            await expect(bankAccountService.getBankAccountByCurrentAccountAndAgency('123456789', '12345')).rejects.toThrow(new CustomError('Bad Request! Current account is not valid', 400));
+            expect(currentAccountValidationSpy).toHaveBeenCalledTimes(1);
+            expect(agencyValidationSpy).not.toHaveBeenCalled();
         });
         it('should return Bad Request error when agency is not valid', async () => {
             mockMathOperations.agencyValidation = jest.fn(() => false);
 
-            await expect(bankAccountService.getBankAccountByCurrentAccountAndAgency(currentAccount, agency)).rejects.toThrow(new CustomError('Bad Request! Agency is not valid', 400));
+            await expect(bankAccountService.getBankAccountByCurrentAccountAndAgency(mockBankAccount.currentAccount, '12345')).rejects.toThrow(new CustomError('Bad Request! Agency is not valid', 400));
+            expect(currentAccountValidationSpy).toHaveBeenCalledTimes(1);
+            expect(agencyValidationSpy).toHaveBeenCalledTimes(1);
         });
         it('should return Data Not Found error when bank account not found', async () => {
-            mockBankAccountRepository.getBankAccountByCurrentAccountAndAgency = jest.fn(() => Promise.resolve(null));
+            mockBankAccountRepository.getBankAccountByCurrentAccountAndAgency = jest.fn().mockResolvedValue(null);
 
-            await expect(bankAccountService.getBankAccountByCurrentAccountAndAgency(currentAccount, agency)).rejects.toThrow(new CustomError('Data Not Found! Bank account not found', 404));
+            await expect(bankAccountService.getBankAccountByCurrentAccountAndAgency(mockBankAccount.currentAccount, mockBankAccount.agency)).rejects.toThrow(new CustomError('Data Not Found! Bank account not found', 404));
+            expect(currentAccountValidationSpy).toHaveBeenCalledTimes(1);
+            expect(agencyValidationSpy).toHaveBeenCalledTimes(1);
         });
     });
     describe('- Get bank account by id', () => {
@@ -178,7 +181,7 @@ describe('BankAccountService tests:', () => {
                 zipCode: 'Zip Code',
                 complement: 'Complement'
             },
-            phone: 99999999999,
+            phone: '99999999999',
             email: 'user@dio.com',
             password: 'user123',
         };
@@ -229,8 +232,8 @@ describe('BankAccountService tests:', () => {
         const mockSenderBankAccount = {
             bankAccountId: 'bankAccountId1',
             userId: 'userId1',
-            currentAccount: '12345678',
-            agency: '12345',
+            currentAccount: '9113111159',
+            agency: '59868',
             balance: 1000,
             pixKeys: {
                 cpfKey: 'cpfKey1',
@@ -242,8 +245,8 @@ describe('BankAccountService tests:', () => {
         const mockReceiverBankAccount = {
             bankAccountId: 'bankAccountId2',
             userId: 'userId2',
-            currentAccount: '87654321',
-            agency: '54321',
+            currentAccount: '12848229687',
+            agency: '97831',
             balance: 1000,
             pixKeys: {
                 cpfKey: 'cpfKey2',
@@ -252,42 +255,47 @@ describe('BankAccountService tests:', () => {
                 randomKey: 'randomKey2',
             }
         };
-        const tedTransactionData: any = {
-            sender: {
-                agency: mockSenderBankAccount.agency,
-                currentAccount: mockSenderBankAccount.currentAccount
-            },
-            receiver: {
-                agency: mockReceiverBankAccount.agency,
-                currentAccount: mockReceiverBankAccount.currentAccount,
-            },
-            transferType: 'TED',
-            trasnferValue: 500
-        }
-        const pixTransactionData: any = {
-            sender: {
-                agency: mockSenderBankAccount.agency,
-                currentAccount: mockSenderBankAccount.currentAccount
-            },
-            receiver: {
-                pixKey: mockReceiverBankAccount.pixKeys.cpfKey
-            },
-            transferType: 'PIX',
-            trasnferValue: 500
-        }
+        let tedTransactionData: any;
+        let pixTransactionData: any;
         let getBankAccountByCurrentAccountAndAgencySpy: jest.SpyInstance;
         let getBankAccountByPixKeySpy: jest.SpyInstance;
         let identifyPixKeyTypeSpy: jest.SpyInstance;
+        let currentAccountValidationSpy: jest.SpyInstance;
+        let agencyValidationSpy: jest.SpyInstance;
 
         beforeEach(() => {
-            mockMathOperations.agencyValidation = jest.fn(() => true);
-            mockMathOperations.currentAccountValidation = jest.fn(() => true);
+            tedTransactionData = {
+                sender: {
+                    agency: mockSenderBankAccount.agency,
+                    currentAccount: mockSenderBankAccount.currentAccount
+                },
+                receiver: {
+                    agency: mockReceiverBankAccount.agency,
+                    currentAccount: mockReceiverBankAccount.currentAccount,
+                },
+                transferType: 'TED',
+                transferValue: 500
+            }
+            pixTransactionData = {
+                sender: {
+                    agency: mockSenderBankAccount.agency,
+                    currentAccount: mockSenderBankAccount.currentAccount
+                },
+                receiver: {
+                    pixKey: mockReceiverBankAccount.pixKeys.cpfKey
+                },
+                transferType: 'PIX',
+                transferValue: 500
+            }
             getBankAccountByCurrentAccountAndAgencySpy = jest.spyOn(bankAccountService, 'getBankAccountByCurrentAccountAndAgency');
             getBankAccountByPixKeySpy = jest.spyOn(bankAccountService, 'getBankAccountByPixKey');
             identifyPixKeyTypeSpy = jest.spyOn(helper, 'identifyPixKeyType');
+            currentAccountValidationSpy = jest.spyOn(mathOperations, 'currentAccountValidation');
+            agencyValidationSpy = jest.spyOn(mathOperations, 'agencyValidation');
         });
         afterEach(() => {
             jest.clearAllMocks();
+            jest.resetAllMocks();
             jest.restoreAllMocks();
         });
         it('should make transfer when transfer type is DOC or TED', async () => {
@@ -296,8 +304,8 @@ describe('BankAccountService tests:', () => {
             await bankAccountService.makeTransfer(tedTransactionData);
 
             expect(bankAccountService.getBankAccountByCurrentAccountAndAgency).toHaveBeenCalledTimes(2);
-            expect(mockMathOperations.agencyValidation).toHaveBeenCalledTimes(2);
-            expect(mockMathOperations.currentAccountValidation).toHaveBeenCalledTimes(2);
+            expect(agencyValidationSpy).toHaveBeenCalledTimes(2);
+            expect(currentAccountValidationSpy).toHaveBeenCalledTimes(2);
             expect(bankAccountService.getBankAccountByPixKey).not.toHaveBeenCalled();
             expect(mockBankAccountRepository.makeTransfer).toHaveBeenCalledTimes(1);
         });
@@ -310,48 +318,61 @@ describe('BankAccountService tests:', () => {
 
             expect(bankAccountService.getBankAccountByCurrentAccountAndAgency).toHaveBeenCalledTimes(1);
             expect(bankAccountService.getBankAccountByPixKey).toHaveBeenCalledTimes(1);
-            expect(mockMathOperations.agencyValidation).toHaveBeenCalledTimes(1)
-            expect(mockMathOperations.currentAccountValidation).toHaveBeenCalledTimes(1)
+            expect(agencyValidationSpy).toHaveBeenCalledTimes(1)
+            expect(currentAccountValidationSpy).toHaveBeenCalledTimes(1)
             expect(mockBankAccountRepository.makeTransfer).toHaveBeenCalledTimes(1);
         });
         it('should return Bad Request error when sender current account is not valid', async () => {
-            mockMathOperations.currentAccountValidation = jest.fn(() => false);
+            tedTransactionData.sender.currentAccount = '123456789';
 
             await expect(bankAccountService.makeTransfer(tedTransactionData)).rejects.toThrow(new CustomError('Bad Request! Sender current account is not valid', 400));
-            expect(mockMathOperations.currentAccountValidation).toHaveBeenCalledTimes(1);
+            expect(currentAccountValidationSpy).toHaveBeenCalledTimes(1);
             expect(bankAccountService.getBankAccountByPixKey).not.toHaveBeenCalled();
             expect(bankAccountService.getBankAccountByCurrentAccountAndAgency).not.toHaveBeenCalled();
-            expect(mockMathOperations.agencyValidation).not.toHaveBeenCalled()
+            expect(agencyValidationSpy).not.toHaveBeenCalled()
             expect(mockBankAccountRepository.makeTransfer).not.toHaveBeenCalled();
         });
         it('should return Bad Request error when sender agency is not valid', async () => {
-            mockMathOperations.agencyValidation = jest.fn(() => false);
+            tedTransactionData.sender.agency = '12345';
 
             await expect(bankAccountService.makeTransfer(tedTransactionData)).rejects.toThrow(new CustomError('Bad Request! Sender agency is not valid', 400));
-            expect(mockMathOperations.currentAccountValidation).toHaveBeenCalledTimes(1);
-            expect(mockMathOperations.agencyValidation).toHaveBeenCalledTimes(1);
+            expect(currentAccountValidationSpy).toHaveBeenCalledTimes(1);
+            expect(agencyValidationSpy).toHaveBeenCalledTimes(1);
             expect(bankAccountService.getBankAccountByPixKey).not.toHaveBeenCalled();
             expect(bankAccountService.getBankAccountByCurrentAccountAndAgency).not.toHaveBeenCalled();
             expect(mockBankAccountRepository.makeTransfer).not.toHaveBeenCalled();
         });
         it('should return Bad Request error when receiver current account is not valid', async () => {
-            mockMathOperations.currentAccountValidation = jest.fn().mockReturnValueOnce(true).mockReturnValueOnce(false);
+            getBankAccountByCurrentAccountAndAgencySpy.mockResolvedValueOnce(mockSenderBankAccount).mockResolvedValueOnce(mockReceiverBankAccount);
+            tedTransactionData.receiver.currentAccount = '123456789';
 
             await expect(bankAccountService.makeTransfer(tedTransactionData)).rejects.toThrow(new CustomError('Bad Request! Receiver current account is not valid', 400));
-            expect(mockMathOperations.currentAccountValidation).toHaveBeenCalledTimes(2);
-            expect(mockMathOperations.agencyValidation).toHaveBeenCalledTimes(1);
+            expect(currentAccountValidationSpy).toHaveBeenCalledTimes(2);
+            expect(agencyValidationSpy).toHaveBeenCalledTimes(1);
             expect(bankAccountService.getBankAccountByPixKey).not.toHaveBeenCalled();
-            expect(bankAccountService.getBankAccountByCurrentAccountAndAgency).not.toHaveBeenCalled();
+            expect(bankAccountService.getBankAccountByCurrentAccountAndAgency).toHaveBeenCalledTimes(1);
             expect(mockBankAccountRepository.makeTransfer).not.toHaveBeenCalled();
         });
         it('should return Bad Request error when receiver agency is not valid', async () => {
-            mockMathOperations.agencyValidation = jest.fn().mockReturnValueOnce(true).mockReturnValueOnce(false);
+            getBankAccountByCurrentAccountAndAgencySpy.mockResolvedValueOnce(mockSenderBankAccount).mockResolvedValueOnce(mockReceiverBankAccount);
+            tedTransactionData.receiver.agency = '12345';
 
             await expect(bankAccountService.makeTransfer(tedTransactionData)).rejects.toThrow(new CustomError('Bad Request! Receiver agency is not valid', 400));
-            expect(mockMathOperations.currentAccountValidation).toHaveBeenCalledTimes(2);
-            expect(mockMathOperations.agencyValidation).toHaveBeenCalledTimes(2);
+            expect(currentAccountValidationSpy).toHaveBeenCalledTimes(2);
+            expect(agencyValidationSpy).toHaveBeenCalledTimes(2);
             expect(bankAccountService.getBankAccountByPixKey).not.toHaveBeenCalled();
-            expect(bankAccountService.getBankAccountByCurrentAccountAndAgency).not.toHaveBeenCalled();
+            expect(bankAccountService.getBankAccountByCurrentAccountAndAgency).toHaveBeenCalledTimes(1);
+            expect(mockBankAccountRepository.makeTransfer).not.toHaveBeenCalled();
+        });
+        it('should return Forbidden error when sender does not have enough balance to realize the tranfer', async () => {
+            getBankAccountByCurrentAccountAndAgencySpy.mockResolvedValueOnce(mockSenderBankAccount).mockResolvedValueOnce(mockReceiverBankAccount);
+            tedTransactionData.transferValue = 5000;
+
+            await expect(bankAccountService.makeTransfer(tedTransactionData)).rejects.toThrow(new CustomError('Forbidden! Sender does not have enough balance', 400));
+            expect(currentAccountValidationSpy).toHaveBeenCalledTimes(1);
+            expect(agencyValidationSpy).toHaveBeenCalledTimes(1);
+            expect(bankAccountService.getBankAccountByPixKey).not.toHaveBeenCalled();
+            expect(bankAccountService.getBankAccountByCurrentAccountAndAgency).toHaveBeenCalledTimes(1);
             expect(mockBankAccountRepository.makeTransfer).not.toHaveBeenCalled();
         });
     });
