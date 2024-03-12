@@ -20,7 +20,7 @@ export const agencyDigitGenerate = (agencyNumb: string): string => {
     return `${agencyDigit}`;
 };
 
-export const currentAccountGenerate = () => {
+export const accountGenerate = () => {
     const currentAccountDigitNumbers = randomInt(7, 12);
     let currentAccountNumber: string = '';
 
@@ -28,12 +28,12 @@ export const currentAccountGenerate = () => {
         currentAccountNumber = currentAccountNumber + `${randomInt(0, 10)}`;
     }
 
-    const currentAccountDigit: string = currentAccountDigitGenerate(currentAccountNumber);
+    const currentAccountDigit: string = accountDigitGenerate(currentAccountNumber);
 
     return `${currentAccountNumber}${currentAccountDigit}`;
 };
 
-export const currentAccountDigitGenerate = (curentAccountNumber: string): string => {
+export const accountDigitGenerate = (curentAccountNumber: string): string => {
     const calcResult = (parseInt(curentAccountNumber[10] ?? 0) * 2) + (parseInt(curentAccountNumber[9] ?? 0) * 3) + (parseInt(curentAccountNumber[8] ?? 0) * 4) + (parseInt(curentAccountNumber[7] ?? 0) * 5) + (parseInt(curentAccountNumber[6] ?? 0) * 6) + (parseInt(curentAccountNumber[5] ?? 0) * 7) + (parseInt(curentAccountNumber[4] ?? 0) * 8) + (parseInt(curentAccountNumber[3] ?? 0) * 9) + (parseInt(curentAccountNumber[2] ?? 0) * 10) + (parseInt(curentAccountNumber[1] ?? 0) * 11) + (parseInt(curentAccountNumber[0] ?? 0) * 2);
 
     const mod11Result = calcResult % 11;
@@ -56,7 +56,7 @@ export const currentAccountValidation = (currentAccount: string): boolean => {
     const number = currentAccount.slice(0, currentAccount.length - 1);
     const digit = currentAccount.slice(currentAccount.length - 1);
 
-    const generatedDigit = currentAccountDigitGenerate(number);
+    const generatedDigit = accountDigitGenerate(number);
 
     return digit === generatedDigit;
 };

@@ -1,4 +1,3 @@
-import { MockResponse } from './../__mocks__/mockResponse.mock';
 import { BankAccountController } from "../../src/controllers/BankAccountController";
 import { BankAccount } from "../../src/entities/BankAccount";
 import { BankAccountService } from "../../src/services/BankAccountService";
@@ -37,10 +36,10 @@ jest.mock('@/services/UserService', () => {
 describe('BankAccountController tests:', () => {
     const bankAccountController = new BankAccountController();
     const mockResponse = makeMockResponse();
-    const mockBankAccount = {
+    const mockBankAccount: BankAccount = {
         bankAccountId: 'bankAccountId',
         userId: 'userId',
-        currentAccount: '123456784',
+        account: '123456784',
         agency: '12345',
         balance: 1000,
         pixKeys: {
@@ -48,7 +47,8 @@ describe('BankAccountController tests:', () => {
             phoneKey: 'phoneKey',
             emailKey: 'emailKey',
             randomKey: 'randomKey',
-        }
+        },
+        transactionHistory: [],
     };
 
     afterEach(() => {

@@ -1,9 +1,10 @@
 import { BankAccount } from "../../src/entities/BankAccount";
 import { CustomError } from "../../src/errors/CustomError";
 import { BankAccountRepository } from "../../src/repositories/BankAccountRepository";
-import { BankAccountService, KeyTypes } from "../../src/services/BankAccountService";
+import { BankAccountService } from "../../src/services/BankAccountService";
 import * as mathOperations from '../../src/math/mathOperations'
 import * as helper from '../../src/helper/help';
+import { KeyTypes } from "../../types/custom-types";
 
 const mockBankAccountRepository: Omit<BankAccountRepository, 'database'> = {
     createBankAccount: jest.fn(),
@@ -13,6 +14,7 @@ const mockBankAccountRepository: Omit<BankAccountRepository, 'database'> = {
     getAllBankAccounts: jest.fn(),
     getBankAccountByPixKey: jest.fn(),
     createPixKey: jest.fn(),
+    deletePixKey: jest.fn(),
     deleteBankAccount: jest.fn(),
     makeTransfer: jest.fn()
 };
@@ -36,7 +38,7 @@ describe('BankAccountService tests:', () => {
     const mockBankAccount = {
         bankAccountId: 'bankAccountId',
         userId: 'userId',
-        currentAccount: '9113111159',
+        account: '9113111159',
         agency: '59868',
         balance: 1000,
         pixKeys: {
@@ -44,7 +46,8 @@ describe('BankAccountService tests:', () => {
             phoneKey: 'phoneKey',
             emailKey: 'emailKey',
             randomKey: 'randomKey',
-        }
+        },
+        transactionHistory: [],
     };
 
     describe('- Create bank account', () => {
@@ -71,7 +74,7 @@ describe('BankAccountService tests:', () => {
         it('should return bank account when current account and agency are found', async () => {
             mockBankAccountRepository.getBankAccountByCurrentAccountAndAgency = jest.fn().mockResolvedValue(mockBankAccount);
 
-            const bankAccount = await bankAccountService.getBankAccountByCurrentAccountAndAgency(mockBankAccount.currentAccount, mockBankAccount.agency);
+            const bankAccount = await bankAccountService.getBankAccountByCurrentAccountAndAgency(mockBankAccount.account, mockBankAccount.agency);
 
             expect(currentAccountValidationSpy).toHaveBeenCalledTimes(1);
             expect(agencyValidationSpy).toHaveBeenCalledTimes(1);
@@ -87,14 +90,14 @@ describe('BankAccountService tests:', () => {
         it('should return Bad Request error when agency is not valid', async () => {
             mockMathOperations.agencyValidation = jest.fn(() => false);
 
-            await expect(bankAccountService.getBankAccountByCurrentAccountAndAgency(mockBankAccount.currentAccount, '12345')).rejects.toThrow(new CustomError('Bad Request! Agency is not valid', 400));
+            await expect(bankAccountService.getBankAccountByCurrentAccountAndAgency(mockBankAccount.account, '12345')).rejects.toThrow(new CustomError('Bad Request! Agency is not valid', 400));
             expect(currentAccountValidationSpy).toHaveBeenCalledTimes(1);
             expect(agencyValidationSpy).toHaveBeenCalledTimes(1);
         });
         it('should return Data Not Found error when bank account not found', async () => {
             mockBankAccountRepository.getBankAccountByCurrentAccountAndAgency = jest.fn().mockResolvedValue(null);
 
-            await expect(bankAccountService.getBankAccountByCurrentAccountAndAgency(mockBankAccount.currentAccount, mockBankAccount.agency)).rejects.toThrow(new CustomError('Data Not Found! Bank account not found', 404));
+            await expect(bankAccountService.getBankAccountByCurrentAccountAndAgency(mockBankAccount.account, mockBankAccount.agency)).rejects.toThrow(new CustomError('Data Not Found! Bank account not found', 404));
             expect(currentAccountValidationSpy).toHaveBeenCalledTimes(1);
             expect(agencyValidationSpy).toHaveBeenCalledTimes(1);
         });
@@ -188,14 +191,15 @@ describe('BankAccountService tests:', () => {
         const mockBankAccountWithoutCpfKey = {
             bankAccountId: 'bankAccountId',
             userId: mockUser.id,
-            currentAccount: '123456784',
+            account: '123456784',
             agency: '12345',
             balance: 1000,
             pixKeys: {
                 phoneKey: 'phoneKey',
                 emailKey: 'emailKey',
                 randomKey: 'randomKey',
-            }
+            },
+            transactionHistory: [],
         }
 
         it('should create PIX key if the key in not exist', async () => {

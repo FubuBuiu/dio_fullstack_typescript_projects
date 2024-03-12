@@ -1,4 +1,4 @@
-import { agencyDigitGenerate, agencyGenerate, currentAccountGenerate, agencyValidation, currentAccountDigitGenerate, currentAccountValidation, randomPixKeyGenerate, cpfValidation, cpfDigitGenerate } from './../src/math/mathOperations';
+import { agencyDigitGenerate, agencyGenerate, accountGenerate, agencyValidation, accountDigitGenerate, currentAccountValidation, randomPixKeyGenerate, cpfValidation, cpfDigitGenerate } from './../src/math/mathOperations';
 import * as mathOperations from '../src/math/mathOperations';
 
 const mockCrypto = {
@@ -16,7 +16,7 @@ describe('Math operations tests', () => {
 
     describe('Current Account tests:', () => {
         it('should return current account number when currentAccountGenerate() has been called', () => {
-            const currentAccoutnDigitGenerateSpy = jest.spyOn(mathOperations, 'currentAccountDigitGenerate');
+            const currentAccoutnDigitGenerateSpy = jest.spyOn(mathOperations, 'accountDigitGenerate');
             mockCrypto.randomInt = jest.fn().mockReturnValueOnce(9);
             mockCrypto.randomInt.mockReturnValueOnce(0);
             mockCrypto.randomInt.mockReturnValueOnce(6);
@@ -28,7 +28,7 @@ describe('Math operations tests', () => {
             mockCrypto.randomInt.mockReturnValueOnce(1);
             mockCrypto.randomInt.mockReturnValueOnce(5);
 
-            const currentAccount = currentAccountGenerate();
+            const currentAccount = accountGenerate();
 
             expect(currentAccoutnDigitGenerateSpy).toHaveBeenCalledTimes(1);
             expect(currentAccoutnDigitGenerateSpy).toHaveBeenCalledWith('068302115');
@@ -41,7 +41,7 @@ describe('Math operations tests', () => {
             const currentAccountNumber = currentAccount.slice(0, currentAccount.length - 1);
             const currentAccountDigit = currentAccount.slice(currentAccount.length - 1);
 
-            const verifyDigit = currentAccountDigitGenerate(currentAccountNumber);
+            const verifyDigit = accountDigitGenerate(currentAccountNumber);
 
             expect(typeof verifyDigit).toBe('string');
             expect(verifyDigit).toHaveLength(1);

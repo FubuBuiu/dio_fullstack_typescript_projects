@@ -2,7 +2,7 @@ import { BankAccount } from './../../src/entities/BankAccount';
 import { Firestore } from "firebase/firestore";
 import { BankAccountRepository } from "../../src/repositories/BankAccountRepository";
 import { getMockFirestoreManager } from "../__mocks__/mockFirestoreFunctions.mock";
-import { KeyTypes } from '../../src/services/BankAccountService';
+import { KeyTypes } from '../../types/custom-types';
 
 let firestoreManager = getMockFirestoreManager({});
 
@@ -25,10 +25,10 @@ jest.mock('firebase/firestore', () => {
 describe('BankAccountRepository tests:', () => {
     const bankAccountRepository = new BankAccountRepository({} as Firestore);
 
-    const mockBankAccount = {
+    const mockBankAccount: BankAccount = {
         bankAccountId: 'bankAccountId',
         userId: 'userId',
-        currentAccount: '123456784',
+        account: '123456784',
         agency: '12345',
         balance: 1000,
         pixKeys: {
@@ -36,7 +36,8 @@ describe('BankAccountRepository tests:', () => {
             phoneKey: 'phoneKey',
             emailKey: 'emailKey',
             randomKey: 'randomKey',
-        }
+        },
+        transactionHistory: [],
     };
     describe('- Create bank account', () => {
         it('should create bank account', async () => {

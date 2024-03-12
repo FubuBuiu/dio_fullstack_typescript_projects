@@ -1,23 +1,10 @@
+import { ITransactionData } from './../../types/interfaces';
 import { BankAccount } from './../entities/BankAccount';
 import { Request, Response } from "express";
-import { BankAccountService, KeyTypes } from "../services/BankAccountService";
+import { BankAccountService } from "../services/BankAccountService";
 import { CustomError } from '../errors/CustomError';
 import { UserService } from '../services/UserService';
-
-type TransferType = 'PIX' | 'TED' | 'DOC';
-
-export interface TransactionDataType {
-    transferValue: number;
-    sender: {
-        currentAccount: string;
-        agency: string;
-    };
-    receiver: {
-        currentAccount: string;
-        agency: string; pixKey: string;
-    };
-    transferType: TransferType;
-};
+import { KeyTypes } from '../../types/custom-types';
 
 export class BankAccountController {
     bankAccountService: BankAccountService;
@@ -29,7 +16,7 @@ export class BankAccountController {
     }
 
     makeTranser = async (request: Request, response: Response) => {
-        const transactionData: TransactionDataType = request.body;
+        const transactionData: ITransactionData = request.body;
 
         if (Object.keys(transactionData).length === 0) {
             return response.status(400).json({ message: 'Bad Request! Request body was not provided.' });

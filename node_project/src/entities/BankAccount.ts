@@ -1,26 +1,24 @@
 import { randomUUID } from 'crypto';
-import { agencyGenerate, currentAccountGenerate } from '../math/mathOperations';
+import { agencyGenerate, accountGenerate } from '../math/mathOperations';
+import { ITransactionInformation, PixKeys } from '../../types/interfaces';
 
 export class BankAccount {
-    //TODO Criar um histórico de transações
     bankAccountId: string;
     userId: string;
-    currentAccount: string;
+    account: string;
     agency: string;
     balance: number;
-    pixKeys: {
-        cpfKey?: string;
-        phoneKey?: string;
-        emailKey?: string;
-        randomKey?: string;
-    }
+    pixKeys: PixKeys;
+    transactionHistory: ITransactionInformation[];
+
 
     constructor(userId: string) {
         this.agency = agencyGenerate();
-        this.currentAccount = currentAccountGenerate();
+        this.account = accountGenerate();
         this.userId = userId;
         this.bankAccountId = randomUUID();
         this.balance = 0;
         this.pixKeys = {};
+        this.transactionHistory = [];
     };
 }

@@ -1,6 +1,7 @@
 import { BankAccount } from "../entities/BankAccount";
 import { Firestore, and, collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, updateDoc, where } from "firebase/firestore";
-import { KeyTypes } from "../services/BankAccountService";
+import { PixKeys } from "../../types/interfaces";
+import { KeyTypes } from "../../types/custom-types";
 
 export class BankAccountRepository {
     database: Firestore;
@@ -30,10 +31,11 @@ export class BankAccountRepository {
         return {
             bankAccountId: document.id,
             userId: document.data().userId,
-            currentAccount: document.data().currentAccount,
+            account: document.data().account,
             agency: document.data().agency,
             balance: document.data().balance,
-            pixKeys: document.data().pixKeys
+            pixKeys: document.data().pixKeys,
+            transactionHistory: document.data().transactionHistory
         };
     };
 
@@ -44,10 +46,11 @@ export class BankAccountRepository {
             return {
                 bankAccountId: document.id,
                 userId: document.data().userId,
-                currentAccount: document.data().currentAccount,
+                account: document.data().account,
                 agency: document.data().agency,
                 balance: document.data().balance,
-                pixKeys: document.data().pixKeys
+                pixKeys: document.data().pixKeys,
+                transactionHistory: document.data().transactionHistory
             };
         };
 
@@ -68,10 +71,11 @@ export class BankAccountRepository {
         return {
             bankAccountId: document.id,
             userId: document.data().userId,
-            currentAccount: document.data().currentAccount,
+            account: document.data().account,
             agency: document.data().agency,
             balance: document.data().balance,
-            pixKeys: document.data().pixKeys
+            pixKeys: document.data().pixKeys,
+            transactionHistory: document.data().transactionHistory
         };
     };
 
@@ -82,10 +86,11 @@ export class BankAccountRepository {
             return {
                 bankAccountId: document.id,
                 userId: document.data().userId,
-                currentAccount: document.data().currentAccount,
+                account: document.data().account,
                 agency: document.data().agency,
                 balance: document.data().balance,
-                pixKeys: document.data().pixKeys
+                pixKeys: document.data().pixKeys,
+                transactionHistory: document.data().transactionHistory
             };
         });
     };
@@ -111,22 +116,22 @@ export class BankAccountRepository {
         return {
             bankAccountId: document.id,
             userId: document.data().userId,
-            currentAccount: document.data().currentAccount,
+            account: document.data().account,
             agency: document.data().agency,
             balance: document.data().balance,
-            pixKeys: document.data().pixKeys
+            pixKeys: document.data().pixKeys,
+            transactionHistory: document.data().transactionHistory
         };
     };
 
-    createPixKey = async (bankAccountId: string, pixKeys: {
-        cpfKey?: string;
-        phoneKey?: string;
-        emailKey?: string;
-        randomKey?: string;
-    }) => {
+    createPixKey = async (bankAccountId: string, pixKeys: PixKeys) => {
         await updateDoc(doc(this.database, 'bankAccounts', bankAccountId), {
             pixKeys
         });
+    };
+
+    deletePixKey = async (bankAccountId: string, keyType: string) => {
+        //TODO DESENVOLVER LÓGICA DE DELETAR CHAVE PIX
     };
 
     deleteBankAccount = async (bankAccountId: string) => {

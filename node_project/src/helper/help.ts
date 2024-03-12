@@ -1,6 +1,6 @@
 import { cpfValidation } from "../math/mathOperations";
-import { KeyTypes } from "../services/BankAccountService";
 import json from '../brazilianDDDs.json'
+import { KeyTypes } from "../../types/custom-types";
 
 interface IJsonFile {
     statesByDDD: { [key: string]: any; };

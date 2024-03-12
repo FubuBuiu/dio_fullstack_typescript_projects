@@ -1,4 +1,5 @@
-import { TransactionDataType } from "../controllers/BankAccountController";
+import { KeyTypes } from "../../types/custom-types";
+import { ITransactionData } from "../../types/interfaces";
 import { firestore } from "../database";
 import { BankAccount } from "../entities/BankAccount";
 import { User } from "../entities/User";
@@ -6,8 +7,6 @@ import { CustomError } from "../errors/CustomError";
 import { identifyPixKeyType } from "../helper/help";
 import { agencyValidation, currentAccountValidation, randomPixKeyGenerate } from "../math/mathOperations";
 import { BankAccountRepository } from "../repositories/BankAccountRepository";
-
-export type KeyTypes = 'EMAIL' | 'CPF' | 'PHONE' | 'RANDOM';
 
 export class BankAccountService {
     bankAccountRepository: BankAccountRepository;
@@ -110,7 +109,7 @@ export class BankAccountService {
         await this.bankAccountRepository.deleteBankAccount(bankAccountId);
     };
 
-    makeTransfer = async (transactionData: TransactionDataType) => {
+    makeTransfer = async (transactionData: ITransactionData) => {
 
         const { receiver, sender, transferType, transferValue } = transactionData;
 

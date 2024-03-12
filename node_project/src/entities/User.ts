@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { IAdress } from '../../types/interfaces';
 
 export class User {
     id: string;
@@ -7,14 +8,7 @@ export class User {
     phone?: string;
     password: string;
     cpf: string;
-    adress?: {
-        street: string;
-        neighborhood: string;
-        city: string;
-        state: string;
-        zipCode: string;
-        complement?: string;
-    };
+    adress?: IAdress;
 
     constructor(name: string, cpf: string, email: string, password: string) {
         this.id = randomUUID();
