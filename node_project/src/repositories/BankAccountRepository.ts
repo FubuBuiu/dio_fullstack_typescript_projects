@@ -124,14 +124,10 @@ export class BankAccountRepository {
         };
     };
 
-    createPixKey = async (bankAccountId: string, pixKeys: PixKeys) => {
+    updatePixKey = async (bankAccountId: string, pixKeys: PixKeys) => {
         await updateDoc(doc(this.database, 'bankAccounts', bankAccountId), {
             pixKeys
         });
-    };
-
-    deletePixKey = async (bankAccountId: string, keyType: string) => {
-        //TODO DESENVOLVER LÓGICA DE DELETAR CHAVE PIX
     };
 
     deleteBankAccount = async (bankAccountId: string) => {

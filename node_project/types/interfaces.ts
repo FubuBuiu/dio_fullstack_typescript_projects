@@ -1,4 +1,4 @@
-import { TransactionCategory, TransactionType, TransferType } from "./custom-types";
+import { ActionType, KeyTypes, TransactionCategory, TransactionType, TransferType } from "./custom-types";
 
 //-------------BANK ACCOUNT-------------
 export interface ITransactionInformation {
@@ -35,6 +35,12 @@ export interface PixKeys {
     phoneKey?: string;
     emailKey?: string;
     randomKey?: string;
+};
+
+export interface IUpdatePixKeyRequest {
+    userId: string;
+    keyType: KeyTypes;
+    action: ActionType;
 }
 
 //-------------USER-------------

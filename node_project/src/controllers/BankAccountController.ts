@@ -1,4 +1,4 @@
-import { ITransactionData } from './../../types/interfaces';
+import { ITransactionData, IUpdatePixKeyRequest } from './../../types/interfaces';
 import { BankAccount } from './../entities/BankAccount';
 import { Request, Response } from "express";
 import { BankAccountService } from "../services/BankAccountService";
@@ -72,10 +72,10 @@ export class BankAccountController {
         }
     };
 
-    createPixKey = async (request: Request, response: Response) => {
-        const { userId, keyType }: { userId: string; keyType: KeyTypes } = request.body;
+    updatePixKey = async (request: Request, response: Response) => {
+        const { userId, keyType, action }: IUpdatePixKeyRequest = request.body;
 
-        if (userId === undefined || keyType === undefined || userId === '') {
+        if (userId === undefined || keyType === undefined || userId === '' || action === undefined) {
             return response.status(400).json({ message: "Bad Request! Request body is missing property." })
         };
 
@@ -83,10 +83,14 @@ export class BankAccountController {
             return response.status(400).json({ message: "Bad Request! The keyType property is not recognized." })
         };
 
+        if (action !== 'DELETE' && action !== 'CREATE') {
+            return response.status(400).json({ message: "Bad Request! Unrecognized action type." })
+        }
+
 
         try {
             const user = await this.userService.getUser(userId);
-            await this.bankAccountService.createPixKey(user, keyType);
+            await this.bankAccountService.updatePixKey(user, keyType, action);
             return response.status(201).json({ message: 'PIX key created successfully.' });
         } catch (error: any) {
 

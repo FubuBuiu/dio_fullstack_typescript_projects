@@ -12,7 +12,7 @@ const mockBankAccountService: Omit<BankAccountService, 'bankAccountRepository'> 
     getBankAccountByUserId: jest.fn(),
     getAllBankAccounts: jest.fn(),
     getBankAccountByPixKey: jest.fn(),
-    createPixKey: jest.fn(),
+    updatePixKey: jest.fn(),
     deleteBankAccount: jest.fn(),
     makeTransfer: jest.fn()
 };
@@ -396,7 +396,7 @@ describe('BankAccountController tests:', () => {
             expect(mockResponse.state.json).toMatchObject({ message: 'Error: Any other error' });
         });
     });
-    describe('- Testing the createPixKey service', () => {
+    describe('- Testing the updatePixKey service', () => {
         const mockUser = {
             id: '12345',
             name: 'User name',
@@ -417,26 +417,28 @@ describe('BankAccountController tests:', () => {
             const mockRequest = makeMockRequest({
                 body: {
                     userId: 'userId',
-                    keyType: 'CPF'
+                    keyType: 'CPF',
+                    action: 'CREATE'
                 }
             });
             mockUserService.getUser = jest.fn().mockResolvedValue(mockUser);
 
-            await bankAccountController.createPixKey(mockRequest, mockResponse);
+            await bankAccountController.updatePixKey(mockRequest, mockResponse);
 
             expect(mockUserService.getUser).toHaveBeenCalled();
-            expect(mockBankAccountService.createPixKey).toHaveBeenCalledTimes(1);
+            expect(mockBankAccountService.updatePixKey).toHaveBeenCalledTimes(1);
             expect(mockResponse.state.status).toBe(201);
             expect(mockResponse.state.json).toMatchObject({ message: 'PIX key created successfully.' });
         });
         it('should return status code 400 when userId is undefined', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    keyType: 'CPF'
+                    keyType: 'CPF',
+                    action: 'CREATE'
                 }
             });
 
-            await bankAccountController.createPixKey(mockRequest, mockResponse);
+            await bankAccountController.updatePixKey(mockRequest, mockResponse);
 
             expect(mockResponse.state.status).toBe(400);
             expect(mockResponse.state.json).toMatchObject({ message: "Bad Request! Request body is missing property." });
@@ -445,11 +447,12 @@ describe('BankAccountController tests:', () => {
             const mockRequest = makeMockRequest({
                 body: {
                     userId: '',
-                    keyType: 'CPF'
+                    keyType: 'CPF',
+                    action: 'CREATE'
                 }
             });
 
-            await bankAccountController.createPixKey(mockRequest, mockResponse);
+            await bankAccountController.updatePixKey(mockRequest, mockResponse);
 
             expect(mockResponse.state.status).toBe(400);
             expect(mockResponse.state.json).toMatchObject({ message: "Bad Request! Request body is missing property." });
@@ -457,11 +460,12 @@ describe('BankAccountController tests:', () => {
         it('should return status code 400 when keyType is undefined', async () => {
             const mockRequest = makeMockRequest({
                 body: {
-                    userId: 'userId'
+                    userId: 'userId',
+                    action: 'CREATE'
                 }
             });
 
-            await bankAccountController.createPixKey(mockRequest, mockResponse);
+            await bankAccountController.updatePixKey(mockRequest, mockResponse);
 
             expect(mockResponse.state.status).toBe(400);
             expect(mockResponse.state.json).toMatchObject({ message: "Bad Request! Request body is missing property." });
@@ -470,25 +474,54 @@ describe('BankAccountController tests:', () => {
             const mockRequest = makeMockRequest({
                 body: {
                     userId: 'userId',
-                    keyType: 'notRecognizedKey'
+                    keyType: 'notRecognizedKey',
+                    action: 'CREATE'
                 }
             });
 
-            await bankAccountController.createPixKey(mockRequest, mockResponse);
+            await bankAccountController.updatePixKey(mockRequest, mockResponse);
 
             expect(mockResponse.state.status).toBe(400);
             expect(mockResponse.state.json).toMatchObject({ message: "Bad Request! The keyType property is not recognized." });
+        });
+        it('should return status code 400 when action is undefined', async () => {
+            const mockRequest = makeMockRequest({
+                body: {
+                    userId: 'userId',
+                    keyType: 'CPF',
+                }
+            });
+
+            await bankAccountController.updatePixKey(mockRequest, mockResponse);
+
+            expect(mockResponse.state.status).toBe(400);
+            expect(mockResponse.state.json).toMatchObject({ message: "Bad Request! Request body is missing property." });
+        });
+        it('should return status code 400 when action not recognized', async () => {
+            const mockRequest = makeMockRequest({
+                body: {
+                    userId: 'userId',
+                    keyType: 'CPF',
+                    action: 'UnrecognizedAction'
+                }
+            });
+
+            await bankAccountController.updatePixKey(mockRequest, mockResponse);
+
+            expect(mockResponse.state.status).toBe(400);
+            expect(mockResponse.state.json).toMatchObject({ message: "Bad Request! Unrecognized action type." });
         });
         it('should return status code 500 for another error', async () => {
             const mockRequest = makeMockRequest({
                 body: {
                     userId: 'userId',
-                    keyType: 'CPF'
+                    keyType: 'CPF',
+                    action: 'CREATE'
                 }
             });
-            mockBankAccountService.createPixKey = jest.fn().mockRejectedValue(new Error('Any other error'));
+            mockBankAccountService.updatePixKey = jest.fn().mockRejectedValue(new Error('Any other error'));
 
-            await bankAccountController.createPixKey(mockRequest, mockResponse);
+            await bankAccountController.updatePixKey(mockRequest, mockResponse);
 
             expect(mockResponse.state.status).toBe(500);
             expect(mockResponse.state.json).toMatchObject({ message: 'Error: Any other error' });

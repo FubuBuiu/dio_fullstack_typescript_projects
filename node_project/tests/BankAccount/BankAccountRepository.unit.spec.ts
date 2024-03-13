@@ -179,12 +179,12 @@ describe('BankAccountRepository tests:', () => {
             expect(bankAccount).toBeNull();
         });
     });
-    describe('- Create PIX key', () => {
-        it('should create PIX key', async () => {
+    describe('- Update PIX key', () => {
+        it('should update PIX key', async () => {
             const bankAccountId = 'bankAccountId';
             const pixKeys = { cpfKey: 'cpfKey' };
 
-            await bankAccountRepository.createPixKey(bankAccountId, pixKeys);
+            await bankAccountRepository.updatePixKey(bankAccountId, pixKeys);
 
             expect(firestoreManager.updateDoc).toHaveBeenCalledTimes(1);
         });

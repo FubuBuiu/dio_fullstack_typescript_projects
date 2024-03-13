@@ -13,8 +13,7 @@ const mockBankAccountRepository: Omit<BankAccountRepository, 'database'> = {
     getBankAccountByUserId: jest.fn(),
     getAllBankAccounts: jest.fn(),
     getBankAccountByPixKey: jest.fn(),
-    createPixKey: jest.fn(),
-    deletePixKey: jest.fn(),
+    updatePixKey: jest.fn(),
     deleteBankAccount: jest.fn(),
     makeTransfer: jest.fn()
 };
@@ -170,7 +169,7 @@ describe('BankAccountService tests:', () => {
             expect(mockBankAccountRepository.getBankAccountByPixKey).toHaveBeenCalledTimes(1);
         });
     });
-    describe('- Create PIX key', () => {
+    describe('- Update PIX keys', () => {
 
         const mockUser = {
             id: '12345',
@@ -205,17 +204,29 @@ describe('BankAccountService tests:', () => {
         it('should create PIX key if the key in not exist', async () => {
             jest.spyOn(bankAccountService, 'getBankAccountByUserId').mockImplementation(() => Promise.resolve(mockBankAccountWithoutCpfKey));
 
-            await bankAccountService.createPixKey(mockUser, 'CPF');
+            await bankAccountService.updatePixKey(mockUser, 'CPF', 'CREATE');
 
             expect(bankAccountService.getBankAccountByUserId).toHaveBeenCalledTimes(1);
-            expect(mockBankAccountRepository.createPixKey).toHaveBeenCalledTimes(1);
+            expect(mockBankAccountRepository.updatePixKey).toHaveBeenCalledTimes(1);
         });
-        it('should return Conflict error when the PIX key already exist', async () => {
+        it('should return Conflict error when trying to create a PIX key that already exist', async () => {
             jest.spyOn(bankAccountService, 'getBankAccountByUserId').mockImplementation(() => Promise.resolve(mockBankAccount));
 
-            await expect(bankAccountService.createPixKey(mockUser, 'CPF')).rejects.toThrow(new CustomError('Conflict! PIX key already exists.', 409));
+            await expect(bankAccountService.updatePixKey(mockUser, 'CPF', 'CREATE')).rejects.toThrow(new CustomError('Conflict! PIX key already exists.', 409));
             expect(bankAccountService.getBankAccountByUserId).toHaveBeenCalledTimes(1);
-            expect(mockBankAccountRepository.createPixKey).not.toHaveBeenCalled();
+            expect(mockBankAccountRepository.updatePixKey).not.toHaveBeenCalled();
+        });
+        it('should delete PIX key', async () => {
+            jest.spyOn(bankAccountService, 'getBankAccountByUserId').mockImplementation(() => Promise.resolve(mockBankAccount));
+
+            await bankAccountService.updatePixKey(mockUser, "PHONE", "DELETE");
+
+            expect(bankAccountService.getBankAccountByUserId).toHaveBeenCalledTimes(1);
+            expect(mockBankAccountRepository.updatePixKey).toHaveBeenCalledWith(mockBankAccount.bankAccountId, {
+                cpfKey: 'cpfKey',
+                emailKey: 'emailKey',
+                randomKey: 'randomKey',
+            })
         });
     });
     describe('- Delete bank account', () => {

@@ -1,4 +1,4 @@
-import { KeyTypes } from "../../types/custom-types";
+import { ActionType, KeyTypes } from "../../types/custom-types";
 import { ITransactionData } from "../../types/interfaces";
 import { firestore } from "../database";
 import { BankAccount } from "../entities/BankAccount";
@@ -78,7 +78,7 @@ export class BankAccountService {
         return bankAccount;
     };
 
-    createPixKey = async (user: User, keyType: KeyTypes) => {
+    updatePixKey = async (user: User, keyType: KeyTypes, action: ActionType) => {
         enum Key {
             EMAIL = 'emailKey',
             CPF = 'cpfKey',
@@ -88,21 +88,28 @@ export class BankAccountService {
 
         const { bankAccountId, pixKeys } = await this.getBankAccountByUserId(user.id);
 
-        if (pixKeys[Key[keyType]] !== undefined) {
-            throw new CustomError('Conflict! PIX key already exists.', 409);
+        switch (action) {
+            case "CREATE":
+                if (pixKeys[Key[keyType]] !== undefined) {
+                    throw new CustomError('Conflict! PIX key already exists.', 409);
+                }
+                if (keyType === 'CPF') {
+                    pixKeys.cpfKey = `${user.cpf}`;
+                } else if (keyType === 'EMAIL') {
+                    pixKeys.emailKey = user.email;
+                } else if (keyType === 'PHONE') {
+                    pixKeys.cpfKey = `${user.phone}`;
+                } else {
+                    pixKeys.randomKey = randomPixKeyGenerate(user.id);
+                }
+                break;
+
+            case "DELETE":
+                delete pixKeys[Key[keyType]];
+                break;
         };
 
-        if (keyType === 'CPF') {
-            pixKeys.cpfKey = `${user.cpf}`;
-        } else if (keyType === 'EMAIL') {
-            pixKeys.emailKey = user.email;
-        } else if (keyType === 'PHONE') {
-            pixKeys.cpfKey = `${user.phone}`;
-        } else {
-            pixKeys.randomKey = randomPixKeyGenerate(user.id);
-        }
-
-        await this.bankAccountRepository.createPixKey(bankAccountId, pixKeys)
+        await this.bankAccountRepository.updatePixKey(bankAccountId, pixKeys);
     };
 
     deleteBankAccount = async (bankAccountId: string) => {
