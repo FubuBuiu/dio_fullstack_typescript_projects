@@ -1,10 +1,9 @@
-import { ITransactionData, IUpdatePixKeyRequest } from './../../types/interfaces';
+import { ITransferData, IUpdatePixKeyRequest } from './../../types/interfaces';
 import { BankAccount } from './../entities/BankAccount';
 import { Request, Response } from "express";
 import { BankAccountService } from "../services/BankAccountService";
 import { CustomError } from '../errors/CustomError';
 import { UserService } from '../services/UserService';
-import { KeyTypes } from '../../types/custom-types';
 
 export class BankAccountController {
     bankAccountService: BankAccountService;
@@ -16,30 +15,30 @@ export class BankAccountController {
     }
 
     makeTranser = async (request: Request, response: Response) => {
-        const transactionData: ITransactionData = request.body;
+        const transferData: ITransferData = request.body;
 
-        if (Object.keys(transactionData).length === 0) {
+        if (Object.keys(transferData).length === 0) {
             return response.status(400).json({ message: 'Bad Request! Request body was not provided.' });
         }
 
-        if (transactionData.transferValue === undefined || transactionData.receiver === undefined || transactionData.sender === undefined || transactionData.sender.agency === undefined || transactionData.sender.currentAccount === undefined || transactionData.transferType === undefined) {
+        if (transferData.transferValue === undefined || transferData.receiver === undefined || transferData.sender === undefined || transferData.sender.agency === undefined || transferData.sender.account === undefined || transferData.transferType === undefined) {
             return response.status(400).json({ message: 'Bad Request! Request body is missing property.' });
         };
 
-        if (transactionData.transferType !== 'PIX' && transactionData.transferType !== 'DOC' && transactionData.transferType !== 'TED') {
+        if (transferData.transferType !== 'PIX' && transferData.transferType !== 'DOC' && transferData.transferType !== 'TED') {
             return response.status(400).json({ message: 'Bad Request! Transfer type not recognized.' });
         };
 
-        if (transactionData.transferType === 'PIX' && (transactionData.receiver.pixKey === undefined)) {
+        if (transferData.transferType === 'PIX' && (transferData.receiver.pixKey === undefined)) {
             return response.status(400).json({ message: 'Bad Request! PIX key not provided.' });
         };
 
-        if ((transactionData.transferType === 'DOC' || transactionData.transferType === 'TED') && (transactionData.receiver.agency === undefined && transactionData.receiver.currentAccount === undefined)) {
+        if ((transferData.transferType === 'DOC' || transferData.transferType === 'TED') && (transferData.receiver.agency === undefined && transferData.receiver.account === undefined)) {
             return response.status(400).json({ message: 'Bad Request! Receiver current account and agency were not provided.' });
         };
 
         try {
-            await this.bankAccountService.makeTransfer(transactionData);
+            await this.bankAccountService.makeTransfer(transferData);
             return response.status(200).json({ message: 'Transfer completed successfully!' });
         } catch (error: any) {
 
@@ -51,15 +50,15 @@ export class BankAccountController {
 
     };
 
-    getBankAccountByCurrentAccountAndAgency = async (request: Request, response: Response) => {
-        const { currentAccount, agency } = request.params;
+    getBankAccountByAccountAndAgency = async (request: Request, response: Response) => {
+        const { account, agency } = request.params;
 
-        if (currentAccount === undefined || agency === undefined || currentAccount === '' || agency === '') {
+        if (account === undefined || agency === undefined || account === '' || agency === '') {
             return response.status(400).json({ message: "Bad Request! Request body is missing property." });
         }
 
         try {
-            const bankAccount: BankAccount = await this.bankAccountService.getBankAccountByCurrentAccountAndAgency(currentAccount, agency);
+            const bankAccount: BankAccount = await this.bankAccountService.getBankAccountByAccountAndAgency(account, agency);
 
             return response.status(200).json(bankAccount);
         } catch (error: any) {

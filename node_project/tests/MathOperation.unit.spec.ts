@@ -1,4 +1,4 @@
-import { agencyDigitGenerate, agencyGenerate, accountGenerate, agencyValidation, accountDigitGenerate, currentAccountValidation, randomPixKeyGenerate, cpfValidation, cpfDigitGenerate } from './../src/math/mathOperations';
+import { agencyDigitGenerate, agencyGenerate, accountGenerate, agencyValidation, accountDigitGenerate, accountValidation, randomPixKeyGenerate, cpfValidation, cpfDigitGenerate } from './../src/math/mathOperations';
 import * as mathOperations from '../src/math/mathOperations';
 
 const mockCrypto = {
@@ -15,8 +15,8 @@ describe('Math operations tests', () => {
     afterEach(() => jest.restoreAllMocks());
 
     describe('Current Account tests:', () => {
-        it('should return current account number when currentAccountGenerate() has been called', () => {
-            const currentAccoutnDigitGenerateSpy = jest.spyOn(mathOperations, 'accountDigitGenerate');
+        it('should return current account number when accountGenerate() has been called', () => {
+            const accountDigitGenerateSpy = jest.spyOn(mathOperations, 'accountDigitGenerate');
             mockCrypto.randomInt = jest.fn().mockReturnValueOnce(9);
             mockCrypto.randomInt.mockReturnValueOnce(0);
             mockCrypto.randomInt.mockReturnValueOnce(6);
@@ -28,36 +28,36 @@ describe('Math operations tests', () => {
             mockCrypto.randomInt.mockReturnValueOnce(1);
             mockCrypto.randomInt.mockReturnValueOnce(5);
 
-            const currentAccount = accountGenerate();
+            const account = accountGenerate();
 
-            expect(currentAccoutnDigitGenerateSpy).toHaveBeenCalledTimes(1);
-            expect(currentAccoutnDigitGenerateSpy).toHaveBeenCalledWith('068302115');
-            expect(currentAccount.length >= 7).toBeTruthy();
-            expect(currentAccount.length <= 11).toBeTruthy();
-            expect(typeof currentAccount).toBe('string');
+            expect(accountDigitGenerateSpy).toHaveBeenCalledTimes(1);
+            expect(accountDigitGenerateSpy).toHaveBeenCalledWith('068302115');
+            expect(account.length >= 7).toBeTruthy();
+            expect(account.length <= 11).toBeTruthy();
+            expect(typeof account).toBe('string');
         });
         it('should return current account verify digit', () => {
-            const currentAccount = '265201386';
-            const currentAccountNumber = currentAccount.slice(0, currentAccount.length - 1);
-            const currentAccountDigit = currentAccount.slice(currentAccount.length - 1);
+            const account = '265201386';
+            const accountNumber = account.slice(0, account.length - 1);
+            const accountDigit = account.slice(account.length - 1);
 
-            const verifyDigit = accountDigitGenerate(currentAccountNumber);
+            const verifyDigit = accountDigitGenerate(accountNumber);
 
             expect(typeof verifyDigit).toBe('string');
             expect(verifyDigit).toHaveLength(1);
-            expect(verifyDigit).toBe(currentAccountDigit);
+            expect(verifyDigit).toBe(accountDigit);
         });
         it('should return true if current account provided is valid', () => {
-            const currentAccount = '265201386';
+            const account = '265201386';
 
-            const isValid = currentAccountValidation(currentAccount);
+            const isValid = accountValidation(account);
 
             expect(isValid).toBeTruthy();
         });
         it('should return false if current account provided is not valid', () => {
-            const currentAccount = '265234856';
+            const account = '265234856';
 
-            const isValid = currentAccountValidation(currentAccount);
+            const isValid = accountValidation(account);
 
             expect(isValid).toBeFalsy();
         });

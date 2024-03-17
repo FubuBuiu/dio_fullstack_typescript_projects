@@ -8,7 +8,7 @@ export interface ITransactionInformation {
     category: TransactionCategory;
     value: number;
     currentBalance: number;
-    description?: string;
+    description: string;
     transferType?: TransferType;
     senderOrReceiverAccount?: {
         name: string;
@@ -17,15 +17,17 @@ export interface ITransactionInformation {
     }
 };
 
-export interface ITransactionData {
+export interface ITransferData {
     transferValue: number;
     sender: {
-        currentAccount: string;
+        description?: string;
+        account: string;
         agency: string;
     };
     receiver: {
-        currentAccount: string;
-        agency: string; pixKey: string;
+        account: string;
+        agency: string;
+        pixKey: string;
     };
     transferType: TransferType;
 };

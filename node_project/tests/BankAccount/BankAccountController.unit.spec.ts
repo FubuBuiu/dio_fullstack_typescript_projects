@@ -1,5 +1,6 @@
 import { BankAccountController } from "../../src/controllers/BankAccountController";
 import { BankAccount } from "../../src/entities/BankAccount";
+import { User } from "../../src/entities/User";
 import { BankAccountService } from "../../src/services/BankAccountService";
 import { UserService } from "../../src/services/UserService";
 import { makeMockRequest } from "../__mocks__/mockRequest.mock";
@@ -7,7 +8,7 @@ import { makeMockResponse } from "../__mocks__/mockResponse.mock";
 
 const mockBankAccountService: Omit<BankAccountService, 'bankAccountRepository'> = {
     createBankAccount: jest.fn(),
-    getBankAccountByCurrentAccountAndAgency: jest.fn(),
+    getBankAccountByAccountAndAgency: jest.fn(),
     getBankAccountById: jest.fn(),
     getBankAccountByUserId: jest.fn(),
     getAllBankAccounts: jest.fn(),
@@ -61,11 +62,11 @@ describe('BankAccountController tests:', () => {
                 body: {
                     transferValue: 500,
                     sender: {
-                        currentAccount: '12345678',
+                        account: '12345678',
                         agency: '12345',
                     },
                     receiver: {
-                        currentAccount: '87654321',
+                        account: '87654321',
                         agency: '54321',
                     },
                     transferType: 'TED',
@@ -83,7 +84,7 @@ describe('BankAccountController tests:', () => {
                 body: {
                     transferValue: 500,
                     sender: {
-                        currentAccount: '12345678',
+                        account: '12345678',
                         agency: '12345',
                     },
                     receiver: {
@@ -112,11 +113,11 @@ describe('BankAccountController tests:', () => {
             const mockRequest = makeMockRequest({
                 body: {
                     sender: {
-                        currentAccount: '12345678',
+                        account: '12345678',
                         agency: '12345',
                     },
                     receiver: {
-                        currentAccount: '87654321',
+                        account: '87654321',
                         agency: '54321',
                     },
                     transferType: 'TED',
@@ -134,7 +135,7 @@ describe('BankAccountController tests:', () => {
                 body: {
                     transferValue: 500,
                     receiver: {
-                        currentAccount: '87654321',
+                        account: '87654321',
                         agency: '54321',
                     },
                     transferType: 'TED',
@@ -152,7 +153,7 @@ describe('BankAccountController tests:', () => {
                 body: {
                     transferValue: 500,
                     sender: {
-                        currentAccount: '12345678',
+                        account: '12345678',
                         agency: '12345',
                     },
                     transferType: 'TED',
@@ -170,11 +171,11 @@ describe('BankAccountController tests:', () => {
                 body: {
                     transferValue: 500,
                     sender: {
-                        currentAccount: '12345678',
+                        account: '12345678',
                         agency: '12345',
                     },
                     receiver: {
-                        currentAccount: '87654321',
+                        account: '87654321',
                         agency: '54321',
                     },
                 }
@@ -194,7 +195,7 @@ describe('BankAccountController tests:', () => {
                         agency: '12345',
                     },
                     receiver: {
-                        currentAccount: '87654321',
+                        account: '87654321',
                         agency: '54321',
                     },
                     transferType: 'TED',
@@ -212,10 +213,10 @@ describe('BankAccountController tests:', () => {
                 body: {
                     transferValue: 500,
                     sender: {
-                        currentAccount: '12345678',
+                        account: '12345678',
                     },
                     receiver: {
-                        currentAccount: '87654321',
+                        account: '87654321',
                         agency: '54321',
                     },
                     transferType: 'TED',
@@ -233,11 +234,11 @@ describe('BankAccountController tests:', () => {
                 body: {
                     transferValue: 500,
                     sender: {
-                        currentAccount: '12345678',
+                        account: '12345678',
                         agency: '12345',
                     },
                     receiver: {
-                        currentAccount: '87654321',
+                        account: '87654321',
                         agency: '54321',
                     },
                     transferType: 'nonExistentTransferType',
@@ -255,7 +256,7 @@ describe('BankAccountController tests:', () => {
                 body: {
                     transferValue: 500,
                     sender: {
-                        currentAccount: '12345678',
+                        account: '12345678',
                         agency: '12345',
                     },
                     receiver: {},
@@ -274,7 +275,7 @@ describe('BankAccountController tests:', () => {
                 body: {
                     transferValue: 500,
                     sender: {
-                        currentAccount: '12345678',
+                        account: '12345678',
                         agency: '12345',
                     },
                     receiver: {},
@@ -293,11 +294,11 @@ describe('BankAccountController tests:', () => {
                 body: {
                     transferValue: 500,
                     sender: {
-                        currentAccount: '12345678',
+                        account: '12345678',
                         agency: '12345',
                     },
                     receiver: {
-                        currentAccount: '87654321',
+                        account: '87654321',
                         agency: '54321',
                     },
                     transferType: 'TED',
@@ -311,19 +312,19 @@ describe('BankAccountController tests:', () => {
             expect(mockResponse.state.json).toMatchObject({ message: 'Error: Any other error' });
         });
     });
-    describe('- Testing the getBankAccountByCurrentAccountAndAgency service', () => {
+    describe('- Testing the getBankAccountByAccountAndAgency service', () => {
         it('should return status code 200 when request body is correct', async () => {
             const mockRequest = makeMockRequest({
                 params: {
-                    currentAccount: '12345678',
+                    account: '12345678',
                     agency: '12345',
                 }
             });
-            mockBankAccountService.getBankAccountByCurrentAccountAndAgency = jest.fn().mockResolvedValue(mockBankAccount);
+            mockBankAccountService.getBankAccountByAccountAndAgency = jest.fn().mockResolvedValue(mockBankAccount);
 
-            await bankAccountController.getBankAccountByCurrentAccountAndAgency(mockRequest, mockResponse);
+            await bankAccountController.getBankAccountByAccountAndAgency(mockRequest, mockResponse);
 
-            expect(mockBankAccountService.getBankAccountByCurrentAccountAndAgency).toHaveBeenCalledTimes(1);
+            expect(mockBankAccountService.getBankAccountByAccountAndAgency).toHaveBeenCalledTimes(1);
             expect(mockResponse.state.status).toBe(200);
             expect(mockResponse.state.json).toMatchObject(mockBankAccount);
         });
@@ -334,70 +335,70 @@ describe('BankAccountController tests:', () => {
                 }
             });
 
-            await bankAccountController.getBankAccountByCurrentAccountAndAgency(mockRequest, mockResponse);
+            await bankAccountController.getBankAccountByAccountAndAgency(mockRequest, mockResponse);
 
-            expect(mockBankAccountService.getBankAccountByCurrentAccountAndAgency).not.toHaveBeenCalled();
+            expect(mockBankAccountService.getBankAccountByAccountAndAgency).not.toHaveBeenCalled();
             expect(mockResponse.state.status).toBe(400);
             expect(mockResponse.state.json).toMatchObject({ message: "Bad Request! Request body is missing property." });
         });
         it('should return status code 400 when agency is undefined', async () => {
             const mockRequest = makeMockRequest({
                 params: {
-                    currentAccount: '12345678',
+                    account: '12345678',
                 }
             });
 
-            await bankAccountController.getBankAccountByCurrentAccountAndAgency(mockRequest, mockResponse);
+            await bankAccountController.getBankAccountByAccountAndAgency(mockRequest, mockResponse);
 
-            expect(mockBankAccountService.getBankAccountByCurrentAccountAndAgency).not.toHaveBeenCalled();
+            expect(mockBankAccountService.getBankAccountByAccountAndAgency).not.toHaveBeenCalled();
             expect(mockResponse.state.status).toBe(400);
             expect(mockResponse.state.json).toMatchObject({ message: "Bad Request! Request body is missing property." });
         });
         it('should return status code 400 when current account is empty string', async () => {
             const mockRequest = makeMockRequest({
                 params: {
-                    currentAccount: '',
+                    account: '',
                     agency: '12345',
                 }
             });
 
-            await bankAccountController.getBankAccountByCurrentAccountAndAgency(mockRequest, mockResponse);
+            await bankAccountController.getBankAccountByAccountAndAgency(mockRequest, mockResponse);
 
-            expect(mockBankAccountService.getBankAccountByCurrentAccountAndAgency).not.toHaveBeenCalled();
+            expect(mockBankAccountService.getBankAccountByAccountAndAgency).not.toHaveBeenCalled();
             expect(mockResponse.state.status).toBe(400);
             expect(mockResponse.state.json).toMatchObject({ message: "Bad Request! Request body is missing property." });
         });
         it('should return status code 400 when agency is empty string', async () => {
             const mockRequest = makeMockRequest({
                 params: {
-                    currentAccount: '0123456789',
+                    account: '0123456789',
                     agency: '',
                 }
             });
 
-            await bankAccountController.getBankAccountByCurrentAccountAndAgency(mockRequest, mockResponse);
+            await bankAccountController.getBankAccountByAccountAndAgency(mockRequest, mockResponse);
 
-            expect(mockBankAccountService.getBankAccountByCurrentAccountAndAgency).not.toHaveBeenCalled();
+            expect(mockBankAccountService.getBankAccountByAccountAndAgency).not.toHaveBeenCalled();
             expect(mockResponse.state.status).toBe(400);
             expect(mockResponse.state.json).toMatchObject({ message: "Bad Request! Request body is missing property." });
         });
         it('should return status code 500 for another error', async () => {
             const mockRequest = makeMockRequest({
                 params: {
-                    currentAccount: '12345678',
+                    account: '12345678',
                     agency: '12345',
                 }
             });
-            mockBankAccountService.getBankAccountByCurrentAccountAndAgency = jest.fn().mockRejectedValue(new Error('Any other error'));
+            mockBankAccountService.getBankAccountByAccountAndAgency = jest.fn().mockRejectedValue(new Error('Any other error'));
 
-            await bankAccountController.getBankAccountByCurrentAccountAndAgency(mockRequest, mockResponse);
+            await bankAccountController.getBankAccountByAccountAndAgency(mockRequest, mockResponse);
 
             expect(mockResponse.state.status).toBe(500);
             expect(mockResponse.state.json).toMatchObject({ message: 'Error: Any other error' });
         });
     });
     describe('- Testing the updatePixKey service', () => {
-        const mockUser = {
+        const mockUser: User = {
             id: '12345',
             name: 'User name',
             cpf: '11111111111',
@@ -409,7 +410,7 @@ describe('BankAccountController tests:', () => {
                 zipCode: 'Zip Code',
                 complement: 'Complement'
             },
-            phone: 99999999999,
+            phone: '99999999999',
             email: 'user@dio.com',
             password: 'user123',
         };

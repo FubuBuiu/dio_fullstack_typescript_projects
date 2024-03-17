@@ -1,6 +1,6 @@
 import { BankAccount } from "../entities/BankAccount";
-import { Firestore, and, collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, updateDoc, where } from "firebase/firestore";
-import { PixKeys } from "../../types/interfaces";
+import { Firestore, and, arrayUnion, collection, deleteDoc, doc, getDoc, getDocs, limit, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { ITransactionInformation, PixKeys } from "../../types/interfaces";
 import { KeyTypes } from "../../types/custom-types";
 
 export class BankAccountRepository {
@@ -17,8 +17,8 @@ export class BankAccountRepository {
         });
     };
 
-    getBankAccountByCurrentAccountAndAgency = async (currentAccount: string, agency: string): Promise<BankAccount | null> => {
-        const q = query(collection(this.database, 'bankAccounts'), and(where("currentAccount", "==", currentAccount), where("agency", "==", agency)));
+    getBankAccountByAccountAndAgency = async (account: string, agency: string): Promise<BankAccount | null> => {
+        const q = query(collection(this.database, 'bankAccounts'), and(where("account", "==", account), where("agency", "==", agency)));
 
         const snapshot = await getDocs(q);
 
@@ -133,6 +133,12 @@ export class BankAccountRepository {
     deleteBankAccount = async (bankAccountId: string) => {
         const document = doc(this.database, 'bankAccounts', bankAccountId);
         await deleteDoc(document);
+    };
+
+    updateTransactionHistory = async (bankAccountId: string, transactionInforamtion: ITransactionInformation) => {
+        await updateDoc(doc(this.database, 'bankAccounts', bankAccountId), {
+            transactionHistory: arrayUnion(transactionInforamtion)
+        });
     };
 
     makeTransfer = async (senderData: { bankAccountId: string; balance: number }, receiverData: { bankAccountId: string; balance: number }, transferValue: number) => {

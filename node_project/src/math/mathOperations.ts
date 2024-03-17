@@ -21,16 +21,16 @@ export const agencyDigitGenerate = (agencyNumb: string): string => {
 };
 
 export const accountGenerate = () => {
-    const currentAccountDigitNumbers = randomInt(7, 12);
-    let currentAccountNumber: string = '';
+    const accountDigitNumbers = randomInt(7, 12);
+    let accountNumber: string = '';
 
-    for (let index = 0; index < currentAccountDigitNumbers; index++) {
-        currentAccountNumber = currentAccountNumber + `${randomInt(0, 10)}`;
+    for (let index = 0; index < accountDigitNumbers; index++) {
+        accountNumber = accountNumber + `${randomInt(0, 10)}`;
     }
 
-    const currentAccountDigit: string = accountDigitGenerate(currentAccountNumber);
+    const accountDigit: string = accountDigitGenerate(accountNumber);
 
-    return `${currentAccountNumber}${currentAccountDigit}`;
+    return `${accountNumber}${accountDigit}`;
 };
 
 export const accountDigitGenerate = (curentAccountNumber: string): string => {
@@ -38,23 +38,23 @@ export const accountDigitGenerate = (curentAccountNumber: string): string => {
 
     const mod11Result = calcResult % 11;
 
-    let currentAccountDigit = 11 - mod11Result;
+    let accountDigit = 11 - mod11Result;
 
-    if (currentAccountDigit > 9) {
-        currentAccountDigit = 0;
+    if (accountDigit > 9) {
+        accountDigit = 0;
     }
 
-    return `${currentAccountDigit}`;
+    return `${accountDigit}`;
 };
 
-export const currentAccountValidation = (currentAccount: string): boolean => {
+export const accountValidation = (account: string): boolean => {
 
-    if (currentAccount.length < 8 || currentAccount.length > 12) {
+    if (account.length < 8 || account.length > 12) {
         return false;
     };
 
-    const number = currentAccount.slice(0, currentAccount.length - 1);
-    const digit = currentAccount.slice(currentAccount.length - 1);
+    const number = account.slice(0, account.length - 1);
+    const digit = account.slice(account.length - 1);
 
     const generatedDigit = accountDigitGenerate(number);
 

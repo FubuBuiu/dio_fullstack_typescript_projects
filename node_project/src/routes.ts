@@ -30,10 +30,10 @@ router.post('/login', loginController.login);
 
 router.get('/bankAccounts/account/:id?', bankAccountController.getBankAccountById);
 
-router.get('/bankAccounts/account/:currentAccount?/:agency?', bankAccountController.getBankAccountByCurrentAccountAndAgency);
+router.get('/bankAccounts/account/:currentAccount?/:agency?', bankAccountController.getBankAccountByAccountAndAgency);
 
 router.post('/bankAccounts/transfer', bankAccountController.makeTranser);
 
-router.post('/bankAccounts/pix/create', bankAccountController.createPixKey);
+router.post('/bankAccounts/pix/create', bankAccountController.updatePixKey);
 
 router.get('/bankAccounts', bankAccountController.getAllBankAccounts);

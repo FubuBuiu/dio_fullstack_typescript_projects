@@ -66,13 +66,13 @@ describe('BankAccountRepository tests:', () => {
                 }
             });
 
-            const bankAccount = await bankAccountRepository.getBankAccountByCurrentAccountAndAgency(currentAccount, agency);
+            const bankAccount = await bankAccountRepository.getBankAccountByAccountAndAgency(currentAccount, agency);
 
             expect(firestoreManager.getDocs).toHaveBeenCalledTimes(1);
             expect(bankAccount).toMatchObject<BankAccount>(mockBankAccount);
         });
         it('should return null if current account and agency do not exist', async () => {
-            const bankAccount = await bankAccountRepository.getBankAccountByCurrentAccountAndAgency(currentAccount, agency);
+            const bankAccount = await bankAccountRepository.getBankAccountByAccountAndAgency(currentAccount, agency);
 
             expect(firestoreManager.getDocs).toHaveBeenCalledTimes(1);
             expect(bankAccount).toBeNull();

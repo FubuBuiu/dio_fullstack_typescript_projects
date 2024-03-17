@@ -1,12 +1,13 @@
 import { ActionType, KeyTypes } from "../../types/custom-types";
-import { ITransactionData } from "../../types/interfaces";
+import { ITransactionInformation, ITransferData } from "../../types/interfaces";
 import { firestore } from "../database";
 import { BankAccount } from "../entities/BankAccount";
 import { User } from "../entities/User";
 import { CustomError } from "../errors/CustomError";
 import { identifyPixKeyType } from "../helper/help";
-import { agencyValidation, currentAccountValidation, randomPixKeyGenerate } from "../math/mathOperations";
+import { agencyValidation, accountValidation, randomPixKeyGenerate } from "../math/mathOperations";
 import { BankAccountRepository } from "../repositories/BankAccountRepository";
+import { UserService } from './UserService';
 
 export class BankAccountService {
     bankAccountRepository: BankAccountRepository;
@@ -20,10 +21,10 @@ export class BankAccountService {
         await this.bankAccountRepository.createBankAccount(bankAccount);
     };
 
-    getBankAccountByCurrentAccountAndAgency = async (currentAccount: string, agency: string): Promise<BankAccount> => {
-        const isCurrentAccountValid = currentAccountValidation(currentAccount);
+    getBankAccountByAccountAndAgency = async (account: string, agency: string): Promise<BankAccount> => {
+        const isAccountValid = accountValidation(account);
 
-        if (!isCurrentAccountValid) {
+        if (!isAccountValid) {
             throw new CustomError('Bad Request! Current account is not valid', 400);
         };
 
@@ -33,7 +34,7 @@ export class BankAccountService {
             throw new CustomError('Bad Request! Agency is not valid', 400);
         };
 
-        const bankAccount = await this.bankAccountRepository.getBankAccountByCurrentAccountAndAgency(currentAccount, agency);
+        const bankAccount = await this.bankAccountRepository.getBankAccountByAccountAndAgency(account, agency);
 
         if (bankAccount === null) {
             throw new CustomError('Data Not Found! Bank account not found', 404);
@@ -86,6 +87,8 @@ export class BankAccountService {
             RANDOM = 'randomKey'
         }
 
+        //TODO Remover a instancia do UserService do BankAccountController e trazer aqui
+
         const { bankAccountId, pixKeys } = await this.getBankAccountByUserId(user.id);
 
         switch (action) {
@@ -116,13 +119,13 @@ export class BankAccountService {
         await this.bankAccountRepository.deleteBankAccount(bankAccountId);
     };
 
-    makeTransfer = async (transactionData: ITransactionData) => {
+    makeTransfer = async (transferData: ITransferData) => {
 
-        const { receiver, sender, transferType, transferValue } = transactionData;
+        const { receiver, sender, transferType, transferValue } = transferData;
 
-        const isSenderCurrentAccount = currentAccountValidation(sender.currentAccount);
+        const isSenderAccount = accountValidation(sender.account);
 
-        if (!isSenderCurrentAccount) {
+        if (!isSenderAccount) {
             throw new CustomError('Bad Request! Sender current account is not valid', 400);
         };
 
@@ -132,24 +135,25 @@ export class BankAccountService {
             throw new CustomError('Bad Request! Sender agency is not valid', 400);
         };
 
-        const senderBankAccount = await this.getBankAccountByCurrentAccountAndAgency(sender.currentAccount, sender.agency);
+        const senderBankAccount: BankAccount = await this.getBankAccountByAccountAndAgency(sender.account, sender.agency);
 
-        if (senderBankAccount.balance < transactionData.transferValue) {
+        if (senderBankAccount.balance < transferData.transferValue) {
             throw new CustomError('Forbidden! Sender does not have enough balance', 403);
-        }
+        };
 
         const senderData = {
             bankAccountId: senderBankAccount.bankAccountId,
             balance: senderBankAccount.balance
         };
 
+        let receiverBankAccount: BankAccount;
         let receiverData;
 
         if (transferType === "DOC" || transferType === "TED") {
 
-            const isReceiverCurrentAccountValid = currentAccountValidation(receiver.currentAccount);
+            const isReceiverAccountValid = accountValidation(receiver.account);
 
-            if (!isReceiverCurrentAccountValid) {
+            if (!isReceiverAccountValid) {
                 throw new CustomError('Bad Request! Receiver current account is not valid', 400);
             };
 
@@ -160,24 +164,67 @@ export class BankAccountService {
             };
 
 
-            const receiverBanckAccount = await this.getBankAccountByCurrentAccountAndAgency(receiver.currentAccount, receiver.agency);
+            receiverBankAccount = await this.getBankAccountByAccountAndAgency(receiver.account, receiver.agency);
 
             receiverData = {
-                bankAccountId: receiverBanckAccount.bankAccountId,
-                balance: receiverBanckAccount.balance
+                bankAccountId: receiverBankAccount.bankAccountId,
+                balance: receiverBankAccount.balance
             }
 
         } else {
-            const keyType: KeyTypes = await identifyPixKeyType(transactionData.receiver.pixKey);
+            const keyType: KeyTypes = await identifyPixKeyType(transferData.receiver.pixKey);
 
-            const receiverBanckAccount: BankAccount = await this.getBankAccountByPixKey(keyType, receiver.pixKey);
+            receiverBankAccount = await this.getBankAccountByPixKey(keyType, receiver.pixKey);
 
             receiverData = {
-                bankAccountId: receiverBanckAccount.bankAccountId,
-                balance: receiverBanckAccount.balance
+                bankAccountId: receiverBankAccount.bankAccountId,
+                balance: receiverBankAccount.balance
             }
         }
 
+        //TODO Verificar se existe uma implementação melhor para gerar a TransactionInformation
+
+        const userService = new UserService()
+
+        const senderUser = await userService.getUser(senderBankAccount.userId);
+
+        const senderTransactionInfo: ITransactionInformation = {
+            transactionId: 'T' + Date.now(),
+            dateTime: new Date(),
+            type: 'TRANSFERENCE',
+            category: 'DEBIT',
+            value: transferValue,
+            currentBalance: senderBankAccount.balance - transferValue,
+            description: sender.description ?? '',
+            transferType,
+            senderOrReceiverAccount: {
+                name: senderUser.name,
+                account: senderBankAccount.account,
+                agency: senderBankAccount.agency
+            }
+        };
+
+        const receiverUser = await userService.getUser(receiverBankAccount.userId);
+
+        const receiverTransactionInfo: ITransactionInformation = {
+            transactionId: 'T' + Date.now(),
+            dateTime: new Date(),
+            type: 'TRANSFERENCE',
+            category: 'CREDIT',
+            value: transferValue,
+            currentBalance: receiverBankAccount.balance + transferValue,
+            description: '',
+            transferType,
+            senderOrReceiverAccount: {
+                name: receiverUser.name,
+                account: receiverBankAccount.account,
+                agency: receiverBankAccount.agency
+            }
+        };
+
         await this.bankAccountRepository.makeTransfer(senderData, receiverData, transferValue);
+
+        await this.bankAccountRepository.updateTransactionHistory(senderBankAccount.bankAccountId, senderTransactionInfo);
+        await this.bankAccountRepository.updateTransactionHistory(receiverBankAccount.bankAccountId, receiverTransactionInfo);
     };
 }
